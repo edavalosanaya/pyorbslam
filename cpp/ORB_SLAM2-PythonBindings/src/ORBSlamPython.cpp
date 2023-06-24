@@ -151,7 +151,8 @@ bool ORBSlamPython::processMono(cv::Mat image, double timestamp, std::string ima
     }
     if (image.data)
     {
-        cv::Mat pose = system->TrackMonocular(image, timestamp, vector<ORB_SLAM3::IMU::Point>(), imageFile);
+        Sophus::SE3f sophusPose = system->TrackMonocular(image, timestamp, vector<ORB_SLAM3::IMU::Point>(), imageFile);
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         return !pose.empty();
     }
     else
@@ -184,7 +185,8 @@ bool ORBSlamPython::processImuMono(cv::Mat image, double timestamp, std::string 
     if (image.data)
     {
         vector<ORB_SLAM3::IMU::Point> vImuMeas = convertImuFromNDArray(imu);
-        cv::Mat pose = system->TrackMonocular(image, timestamp, vImuMeas);
+        Sophus::SE3f sophusPose = system->TrackMonocular(image, timestamp, vImuMeas);
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         return !pose.empty();
     }
     else
@@ -217,7 +219,8 @@ bool ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double 
     }
     if (leftImage.data && rightImage.data)
     {
-        cv::Mat pose = system->TrackStereo(leftImage, rightImage, timestamp);
+        Sophus::SE3f sophusPose = system->TrackStereo(leftImage, rightImage, timestamp);
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         return !pose.empty();
     }
     else
@@ -251,7 +254,8 @@ bool ORBSlamPython::processImuStereo(cv::Mat leftImage, cv::Mat rightImage, doub
     if (leftImage.data && rightImage.data)
     {
         vector<ORB_SLAM3::IMU::Point> vImuMeas = convertImuFromNDArray(imu);
-        cv::Mat pose = system->TrackStereo(leftImage, rightImage, timestamp, vImuMeas);
+        Sophus::SE3f sophusPose = system->TrackStereo(leftImage, rightImage, timestamp, vImuMeas);
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         return !pose.empty();
     }
     else
@@ -283,7 +287,8 @@ bool ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timest
     }
     if (image.data && depthImage.data)
     {
-        cv::Mat pose = system->TrackRGBD(image, depthImage, timestamp);
+        Sophus::SE3f sophusPose = system->TrackRGBD(image, depthImage, timestamp);
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         return !pose.empty();
     }
     else
@@ -390,8 +395,11 @@ boost::python::list ORBSlamPython::getKeyframePoints() const
         if (pKF->isBad())
             continue;
 
-        cv::Mat R = pKF->GetRotation().t();
-        cv::Mat t = pKF->GetCameraCenter();
+        // Convert from Sophus::SE3f to cv::Mat
+        cv::Mat r = ORB_SLAM3::Converter::toCvMat(pKF->GetRotation());
+
+        cv::Mat R = r.t();
+        cv::Mat t = ORB_SLAM3::Converter::toCvMat(pKF->GetCameraCenter());
         PyObject *Rarr = pbcvt::fromMatToNDArray(R);
         PyObject *Tarr = pbcvt::fromMatToNDArray(t);
         trajectory.append(boost::python::make_tuple(
@@ -418,7 +426,7 @@ boost::python::list ORBSlamPython::getTrackedMappoints() const
     {
         if (Mps[i] != NULL)
         {
-            cv::Mat wp = Mps[i]->GetWorldPos();
+            cv::Mat wp = ORB_SLAM3::Converter::toCvMat(Mps[i]->GetWorldPos());
             map_points.append(boost::python::make_tuple(
                 wp.at<float>(0, 0),
                 wp.at<float>(1, 0),
@@ -451,7 +459,7 @@ boost::python::list ORBSlamPython::getCurrentPoints() const
             ORB_SLAM3::MapPoint *pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
             if (pMP && !pTracker->mCurrentFrame.mvbOutlier[i] && pMP->Observations() > 0)
             {
-                cv::Mat wp = pMP->GetWorldPos();
+                cv::Mat wp = ORB_SLAM3::Converter::toCvMat(pMP->GetWorldPos());
                 map_points.append(boost::python::make_tuple(
                     boost::python::make_tuple(
                         wp.at<float>(0, 0),
@@ -473,7 +481,8 @@ PyObject *ORBSlamPython::getFramePose() const
     {
 
         ORB_SLAM3::Tracking *pTracker = system->GetTracker();
-        cv::Mat pose = pTracker->mCurrentFrame.mTcw;
+        Sophus::SE3f sophusPose = pTracker->mCurrentFrame.GetPose();
+        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
         if (pose.rows * pose.cols > 0)
         {
             return pbcvt::fromMatToNDArray(pose);
@@ -527,7 +536,7 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     cv::Mat Two = cv::Mat::eye(4, 4, CV_32F);
     if (vpKFs.size() > 0)
     {
-        cv::Mat Two = vpKFs[0]->GetPoseInverse();
+        cv::Mat Two = ORB_SLAM3::Converter::toCvMat(vpKFs[0]->GetPoseInverse().matrix());
     }
 
     boost::python::list trajectory;
@@ -540,7 +549,7 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     // which is true when tracking failed (lbL).
     std::list<ORB_SLAM3::KeyFrame *>::iterator lRit = system->GetTracker()->mlpReferences.begin();
     std::list<double>::iterator lT = system->GetTracker()->mlFrameTimes.begin();
-    for (std::list<cv::Mat>::iterator lit = system->GetTracker()->mlRelativeFramePoses.begin(), lend = system->GetTracker()->mlRelativeFramePoses.end(); lit != lend; lit++, lRit++, lT++)
+    for (std::list<Sophus::SE3f>::iterator lit = system->GetTracker()->mlRelativeFramePoses.begin(), lend = system->GetTracker()->mlRelativeFramePoses.end(); lit != lend; lit++, lRit++, lT++)
     {
         ORB_SLAM3::KeyFrame *pKF = *lRit;
 
@@ -551,7 +560,7 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
             ORB_SLAM3::KeyFrame *pKFParent;
 
             // std::cout << "bad parent" << std::endl;
-            Trw = Trw * pKF->mTcp;
+            Trw = Trw * ORB_SLAM3::Converter::toCvMat(pKF->mTcp.matrix());
             pKFParent = pKF->GetParent();
             if (pKFParent == pKF)
             {
@@ -565,9 +574,9 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
         }
         if (pKF != NULL && !pKF->isBad())
         {
-            Trw = Trw * pKF->GetPose() * Two;
+            Trw = Trw * ORB_SLAM3::Converter::toCvMat(pKF->GetPose().matrix()) * Two;
 
-            cv::Mat Tcw = (*lit) * Trw;
+            cv::Mat Tcw = ORB_SLAM3::Converter::toCvMat((*lit).matrix()) * Trw;
             //cv::Mat Rwc = Tcw.rowRange(0, 3).colRange(0, 3).t();
             //cv::Mat twc = -Rwc * Tcw.rowRange(0, 3).col(3);
             PyObject *ndarr = pbcvt::fromMatToNDArray(Tcw);

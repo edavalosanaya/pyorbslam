@@ -12,20 +12,20 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall -L/usr/local/lib -Wl,--no-undefined -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -L/usr/local/lib -Wl,--no-undefined  -O3 -march=native")
 
-# Check C++11 or C++0x support
+# Check C++14 or C++0x support
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
    add_definitions(-DCOMPILEDWITHC11)
-   message(STATUS "Using flag -std=c++11.")
+   message(STATUS "Using flag -std=c++14.")
 elseif(COMPILER_SUPPORTS_CXX0X)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
    add_definitions(-DCOMPILEDWITHC0X)
    message(STATUS "Using flag -std=c++0x.")
 else()
-   message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+   message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 
 find_package(PythonInterp 3 REQUIRED)
@@ -33,11 +33,7 @@ find_package(PythonLibs REQUIRED)
 find_package(NumPy)
 find_package(Boost)
 
-if (Boost_MINOR_VERSION EQUAL 65)
-  find_package(Boost REQUIRED COMPONENTS python-py36 numpy3)
-else()
-  find_package(Boost REQUIRED COMPONENTS python38 numpy3)
-endif()
+find_package(Boost REQUIRED COMPONENTS python numpy3)
 
 find_package(OpenCV REQUIRED)
 find_package(ORB_SLAM3 REQUIRED)
@@ -51,6 +47,7 @@ ${PROJECT_SOURCE_DIR}/src
 ${ORB_SLAM3_INCLUDE_DIR}
 ${ORB_SLAM3_INCLUDE_DIR}/ORB_SLAM3/CameraModels
 ${ORB_SLAM3_INCLUDE_DIR}/ORB_SLAM3
+${ORB_SLAM3_INCLUDE_DIR}/Thirdparty/Sophus
 ${PYTHON_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_NUMPY_INCLUDE_DIR}
@@ -79,4 +76,15 @@ if (Pangolin_FOUND)
   target_link_libraries(${TARGET_MODULE_NAME} ${Pangolin_LIBRARIES})
 endif()
 
-install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.8/dist-packages)
+# install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.8/dist-packages)
+
+# Determine the Python module installation directory
+execute_process(
+  COMMAND python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+  OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Install the target module to the Python site packages directory
+install(TARGETS ${TARGET_MODULE_NAME} DESTINATION ${PYTHON_SITE_PACKAGES})
+

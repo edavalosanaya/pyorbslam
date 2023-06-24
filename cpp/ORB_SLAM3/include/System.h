@@ -177,6 +177,10 @@ public:
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
+    // Added for the Python bindings
+    vector<KeyFrame*> GetKeyFrames() const;
+    Tracking* GetTracker() const;
+
     // For debugging
     double GetTimeFromIMUInit();
     bool isLost();
