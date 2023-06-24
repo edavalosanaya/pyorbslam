@@ -35,7 +35,7 @@ find_package(Boost)
 
 find_package(Boost REQUIRED COMPONENTS python numpy3)
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
 find_package(ORB_SLAM3 REQUIRED)
 find_package(Pangolin)
 
@@ -62,8 +62,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(TARGET_MODULE_NAME orbslam3)
 add_library(${TARGET_MODULE_NAME} SHARED
 src/ORBSlamPython.cpp
-src/pyboost_cv2_converter.cpp
-src/pyboost_cv3_converter.cpp)
+src/pyboostcvconverter/pyboost_cv4_converter.cpp)
 set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(${TARGET_MODULE_NAME}
