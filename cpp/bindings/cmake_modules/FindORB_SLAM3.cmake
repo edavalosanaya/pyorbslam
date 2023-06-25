@@ -14,7 +14,7 @@
 # Handle possible Anaconda environment
 if(DEFINED ENV{CONDA_PREFIX})
     # Conda environment is active, set the install prefix to the conda environment path
-    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+    set(_ORB_SLAM3_SEARCHES "$ENV{CONDA_PREFIX}")
 else()
     # Conda environment is not active, set the default install prefix
     set(_ORB_SLAM3_SEARCHES /usr/local/)

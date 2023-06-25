@@ -22,7 +22,7 @@
 
 #include<opencv2/core/core.hpp>
 
-#include<Eigen/Dense>
+#include<eigen3/Eigen/Dense>
 #include"Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
 #include"Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
 

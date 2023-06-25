@@ -18,8 +18,11 @@ else()
     set(CMAKE_INSTALL_PREFIX "/usr/local/")
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall -L/usr/local/lib -Wl,--no-undefined -O3 -march=native ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -L/usr/local/lib -Wl,--no-undefined  -O3 -march=native")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall -L/usr/local/lib -Wl,--no-undefined -O3 -march=native ")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -L/usr/local/lib -Wl,--no-undefined  -O3 -march=native")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
 
 # Check C++14 or C++0x support
 include(CheckCXXCompilerFlag)
@@ -43,7 +46,7 @@ find_package(NumPy REQUIRED)
 find_package(Boost REQUIRED COMPONENTS python numpy3)
 find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
 find_package(ORB_SLAM3 REQUIRED)
-find_package(Pangolin)
+# find_package(Pangolin)
 
 # RPATH fiddling for the library, so that the installed version can find the linked libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -58,9 +61,9 @@ ${PYTHON_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_NUMPY_INCLUDE_DIR}
 )
-if (Pangolin_FOUND)
-  include_directories(${Pangolin_INCLUDE_DIRS})
-endif()
+# if (Pangolin_FOUND)
+#   include_directories(${Pangolin_INCLUDE_DIRS})
+# endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -73,15 +76,15 @@ set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(${TARGET_MODULE_NAME}
 ${ORB_SLAM3_LIBRARIES}
-/usr/local/lib/libDBoW2.so
+# /usr/local/lib/libDBoW2.so
 ${OpenCV_LIBS}
 ${DBoW2}
 ${Boost_LIBRARIES}
 ${PYTHON_LIBRARIES}
 )
-if (Pangolin_FOUND)
-  target_link_libraries(${TARGET_MODULE_NAME} ${Pangolin_LIBRARIES})
-endif()
+# if (Pangolin_FOUND)
+#   target_link_libraries(${TARGET_MODULE_NAME} ${Pangolin_LIBRARIES})
+# endif()
 
 # Determine the Python module installation directory
 execute_process(

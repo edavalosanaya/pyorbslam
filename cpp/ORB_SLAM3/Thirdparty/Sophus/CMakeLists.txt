@@ -12,6 +12,15 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 
+# Handle possible Anaconda environment
+if(DEFINED ENV{CONDA_PREFIX})
+    # Conda environment is active, set the install prefix to the conda environment path
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+else()
+    # Conda environment is not active, set the default install prefix
+    set(CMAKE_INSTALL_PREFIX "/usr/local/")
+endif()
+
 # Set compiler specific settings (FixMe: Should not cmake do this for us automatically?)
 IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
    SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")

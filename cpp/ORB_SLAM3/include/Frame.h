@@ -36,7 +36,7 @@
 #include <mutex>
 #include <opencv2/opencv.hpp>
 
-#include "Eigen/Core"
+#include "eigen3/Eigen/Core"
 #include "sophus/se3.hpp"
 
 namespace ORB_SLAM3
