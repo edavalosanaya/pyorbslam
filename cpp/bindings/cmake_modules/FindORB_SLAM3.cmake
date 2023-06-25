@@ -11,7 +11,15 @@
 #find_package(Eigen3 REQUIRED)
 #find_package(Pangolin REQUIRED)
 
-set(_ORB_SLAM3_SEARCHES /usr/local)
+# Handle possible Anaconda environment
+if(DEFINED ENV{CONDA_PREFIX})
+    # Conda environment is active, set the install prefix to the conda environment path
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+else()
+    # Conda environment is not active, set the default install prefix
+    set(_ORB_SLAM3_SEARCHES /usr/local/)
+endif()
+
 if (ORB_SLAM3_DIR)
     set(_ORB_SLAM3_SEARCHES ${ORB_SLAM3_DIR} ${_ORB_SLAM3_SEARCHES})
 endif()

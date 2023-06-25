@@ -397,6 +397,15 @@ endif()
 # e.g. cmake -DCMAKE_INSTALL_PREFIX="~/local"
 # ---------------
 
+# Handle possible Anaconda environment
+if(DEFINED ENV{CONDA_PREFIX})
+    # Conda environment is active, set the install prefix to the conda environment path
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+else()
+    # Conda environment is not active, set the default install prefix
+    set(CMAKE_INSTALL_PREFIX "/usr/local/")
+endif()
+
 install(TARGETS ${PROJECT_NAME}
     DESTINATION lib
     COMPONENT library)

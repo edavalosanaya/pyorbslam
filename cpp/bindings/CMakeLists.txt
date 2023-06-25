@@ -9,6 +9,15 @@ MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
+# Handle possible Anaconda environment
+if(DEFINED ENV{CONDA_PREFIX})
+    # Conda environment is active, set the install prefix to the conda environment path
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+else()
+    # Conda environment is not active, set the default install prefix
+    set(CMAKE_INSTALL_PREFIX "/usr/local/")
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall -L/usr/local/lib -Wl,--no-undefined -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -L/usr/local/lib -Wl,--no-undefined  -O3 -march=native")
 
@@ -30,11 +39,8 @@ endif()
 
 find_package(PythonInterp 3 REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(NumPy)
-find_package(Boost)
-
+find_package(NumPy REQUIRED)
 find_package(Boost REQUIRED COMPONENTS python numpy3)
-
 find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
 find_package(ORB_SLAM3 REQUIRED)
 find_package(Pangolin)
@@ -67,15 +73,15 @@ set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(${TARGET_MODULE_NAME}
 ${ORB_SLAM3_LIBRARIES}
+/usr/local/lib/libDBoW2.so
 ${OpenCV_LIBS}
+${DBoW2}
 ${Boost_LIBRARIES}
 ${PYTHON_LIBRARIES}
 )
 if (Pangolin_FOUND)
   target_link_libraries(${TARGET_MODULE_NAME} ${Pangolin_LIBRARIES})
 endif()
-
-# install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.8/dist-packages)
 
 # Determine the Python module installation directory
 execute_process(
