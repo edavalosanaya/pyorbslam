@@ -1,0 +1,64 @@
+
+[project]
+name = "pyslam"
+version = "0.0.1"
+description = "pyslam: SLAM based on ORB-SLAM3 in C++"
+authors = [
+    {name = "Eduardo Davalos", email="eduardo.davalos.anaya@vanderbilt.edu"},
+]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+requires-python = ">3.6"
+
+keywords = ["slam", "real-time", "3d", "camera"]
+
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+
+dependencies = [
+    "numpy"
+]
+
+[project.optional-dependencies]
+test = [
+    'pytest',
+    'pytest-lazy-fixture',
+    'pytest-rerunfailures',
+    'pytest-timeout',
+]
+docs = [
+    'sphinx',
+]
+
+[project.urls]
+homepath = "https://github.com/edavalosanaya/pyslam"
+documentation = "https://edavalosanaya.github.io/pyslam/"
+repository = "https://github.com/edavalosanaya/pyslam"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# https://setuptools.pypa.io/en/stable/userguide/datafiles.html
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+# Reference:
+# https://stackoverflow.com/questions/4673373/logging-within-pytest-tests
+[tool.pytest.ini_options]
+
+# Logging + CLI
+log_cli = false
+log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s.%(msecs)03d [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# Timeout
+faulthandler_timeout=300
+
+# Ignore warnings
+filterwarnings = "ignore::DeprecationWarning"
