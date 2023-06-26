@@ -17,7 +17,13 @@ classifiers = [
 ]
 
 dependencies = [
-    "numpy"
+    "numpy",
+    "tqdm",
+    "PyYAML",
+    "opencv-python",
+    "Pillow",
+    "PyOpenGL",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]

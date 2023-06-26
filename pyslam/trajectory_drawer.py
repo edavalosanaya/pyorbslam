@@ -1,4 +1,3 @@
-import slampy
 import numpy as np
 import yaml
 import plotly.graph_objects as go

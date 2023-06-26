@@ -1,7 +1,5 @@
 from enum import Enum
 import numpy as np
-import importlib
-import yaml
 
 class State(Enum):
     """This class is used to get the actual state of the tracking

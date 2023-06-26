@@ -1,7 +1,8 @@
-from enum import Enum
 import numpy as np
 import importlib
 import yaml
+
+from .state import State
 
 class System:
     """This class is a wrapper for the SLAM method in the slam_method folder,"""
@@ -14,7 +15,7 @@ class System:
             sensor_type (Enum): the sensort type of the SLAM
         """
         # read and process the config file
-        with open(params_file) as fs:
+        with open(params_file, 'rb') as fs:
             self.params = yaml.safe_load(fs)
 
         module = importlib.import_module("slam_method." + self.params["SLAM.alg"])
