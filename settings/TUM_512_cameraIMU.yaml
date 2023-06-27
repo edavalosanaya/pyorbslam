@@ -28,7 +28,7 @@ Camera.fps: 20.0
 Camera.RGB: 1
 
 # Transformation from body-frame (imu) to camera
-Tbc: !!opencv-matrix
+Tbc: # opencv-matrix
    rows: 4
    cols: 4
    dt: f
