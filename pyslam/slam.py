@@ -28,7 +28,7 @@ STATE_MAP = {
 }
 
 CWD = pathlib.Path(os.path.abspath(__file__)).parent
-DEFAULT_VOCAB = CWD / 'ORBvoc.bin'
+DEFAULT_VOCAB = CWD.parent / 'cpp' / 'ORB_SLAM3' / 'Vocabulary' / 'ORBvoc.txt'
 
 
 class ASLAM:
@@ -215,7 +215,7 @@ class MonoSLAM(ASLAM):
             tframe (float): the timestamp when the image was capture
 
         Returns:
-            the state of the traking in this frame
+            the state of the tracking in this frame
 
         """
         self.slam.process_image_mono(image, tframe, "0")
