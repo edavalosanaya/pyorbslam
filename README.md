@@ -5,7 +5,7 @@
 The building process has only been tested in Ubuntu. These are the initial dependencies:
 
 ```bash
-sudo apt-get install libeigen3 libopencv
+sudo apt-get install libeigen3-dev libopencv-dev
 ```
 
 First, build ORB_SLAM3
