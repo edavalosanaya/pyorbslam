@@ -48,7 +48,8 @@ class ASLAM:
         self.use_viewer = use_viewer
 
         # Container
-        self.pose_array = []
+        self.image: np.ndarray = np.empty((0,0,3))
+        self.pose_array: List[np.ndarray] = []
 
         # check the existence of the configuration file
         if not config_file.exists():
@@ -125,7 +126,7 @@ class ASLAM:
             return [cp for (cp, _) in self._get_2d_point()]
         return None
 
-    def get_point_cloud_colored(self, image: np.ndarray):
+    def get_point_cloud_colored(self):
         """Get the point cloud at the current frame form the wiev of the current position with the RGB color of the point .
 
         Return:
@@ -134,7 +135,7 @@ class ASLAM:
         """
         if self.get_state() == State.OK:
             return [
-                [cp, image[point[1], point[0]]]
+                [cp, self.image[point[1], point[0]]]
                 for (cp, point) in self._get_2d_point()
             ]
         return None
@@ -205,7 +206,7 @@ class MonoSLAM(ASLAM):
         )
 
         self.slam.set_use_viewer(self.use_viewer)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         self.slam.initialize()
 
     def process(self, image: np.ndarray, tframe: float):
@@ -219,6 +220,7 @@ class MonoSLAM(ASLAM):
             the state of the tracking in this frame
 
         """
+        self.image = image
         self.slam.process_image_mono(image, tframe, "0")
         if self.get_state() == State.OK:
             self.pose_array.append(self.get_pose_to_target())
@@ -254,6 +256,7 @@ class StereoSLAM(ASLAM):
             the state of the traking in this frame
 
         """
+        self.image = image_left
         self.slam.process_image_stereo(image_left, image_right, tframe, "0")
         if self.get_state() == State.OK:
             self.pose_array.append(self.get_pose_to_target())
@@ -289,6 +292,7 @@ class MonoIMUSLAM(ASLAM):
             the state of the traking in this frame
 
         """
+        self.image = image
         self.slam.process_image_imu_mono(image, tframe, "0", imu)
         if self.get_state() == State.OK:
             self.pose_array.append(self.get_pose_to_target())
@@ -325,6 +329,7 @@ class StereoIMUSLAM(ASLAM):
             the state of the traking in this frame
 
         """
+        self.image = image_left
         self.slam.process_image_imu_stereo(
             image_left, image_right, tframe, "0", imu
         )
@@ -361,6 +366,7 @@ class RgbdSLAM(ASLAM):
             the new state of the SLAM system
 
         """
+        self.image = image
         self.slam.process_image_rgbd(image, tframe, "0")
         if self.get_state() == State.OK:
             self.pose_array.append(self.get_pose_to_target())

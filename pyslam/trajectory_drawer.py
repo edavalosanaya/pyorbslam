@@ -102,7 +102,7 @@ class TrajectoryDrawer:
         if slam.get_state() == State.OK:
             # get the depth and pose
             pose = slam.get_pose_to_target()
-            depth = slam.get_depth()
+            # depth = slam.get_depth()
 
             if self.drawpointcloud:
                 # get the colored point cloud
