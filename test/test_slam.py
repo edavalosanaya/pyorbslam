@@ -33,6 +33,8 @@ def test_mono_slam():
 def test_running_mono_slam(tobii_slam):
     
     cap = cv2.VideoCapture(str(TEST_DIR/'data'/'scenevideo.mp4'), 0)
+    drawer = pyslam.TrajectoryDrawer()
+    drawer.get_figure()
 
     timestamp = 0
     fps = 1/24
@@ -44,8 +46,11 @@ def test_running_mono_slam(tobii_slam):
         state = tobii_slam.process(frame, timestamp)
         timestamp += fps
 
-        if state == pyslam.State.OK:
-            logger.debug(i)
+        import pdb; pdb.set_trace()
+
+        # if state == pyslam.State.OK:
+        logger.debug(i)
+        drawer.plot_trajectory(tobii_slam)
 
         cv2.imshow('frame', frame)
         cv2.waitKey(1)

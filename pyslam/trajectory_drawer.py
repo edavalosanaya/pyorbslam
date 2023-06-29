@@ -1,7 +1,17 @@
+import pathlib
+import os
+
 import numpy as np
 import yaml
 import plotly.graph_objects as go
 import time
+
+from .slam import ASLAM
+from .state import State
+
+
+# Constants
+DEFAULT_SETTINGS_PATH = pathlib.Path(os.path.abspath(__file__)).parent / 'settings.yaml'
 
 
 class TrajectoryDrawer:
@@ -9,7 +19,7 @@ class TrajectoryDrawer:
 
     def __init__(
         self,
-        params_file,
+        params_file=DEFAULT_SETTINGS_PATH,
         width=None,
         height=None,
         drawpointcloud=True,
@@ -25,6 +35,7 @@ class TrajectoryDrawer:
             useFigureWidget (bool): use the plotily.graph_object.FigureWidget instance if false it used the plotily.graph_object.Figure
         """
         with open(params_file) as fs:
+            fs.readline()
             self.params = yaml.safe_load(fs)
 
         self.eye_x = self.params["Drawer.eye.x"]
@@ -83,19 +94,19 @@ class TrajectoryDrawer:
         """Return the figure"""
         return self.figure
 
-    def plot_trajcetory(self, slampy_app):
+    def plot_trajectory(self, slam: ASLAM):
         """Compute the trajectory and add it to the figure
         Args:
-            slampy_app (Slampy): the slampy instance used to compute the pose in the image
+            slam (ASLAM): the slampy instance used to compute the pose in the image
         """
-        if slampy_app.get_state() == slampy.State.OK:
+        if slam.get_state() == State.OK:
             # get the depth and pose
-            pose = slampy_app.get_pose_to_target()
-            depth = slampy_app.get_depth()
+            pose = slam.get_pose_to_target()
+            depth = slam.get_depth()
 
             if self.drawpointcloud:
                 # get the colored point cloud
-                points_colored = slampy_app.get_point_cloud_colored()
+                points_colored = slam.get_point_cloud_colored()
 
                 # convert the camera coordinates to world coordinates
                 cp, colors = zip(*points_colored)

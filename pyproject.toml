@@ -23,7 +23,9 @@ dependencies = [
     "opencv-python",
     "Pillow",
     "PyOpenGL",
-    "matplotlib"
+    "matplotlib",
+    "ipywidgets",
+    "plotly"
 ]
 
 [project.optional-dependencies]

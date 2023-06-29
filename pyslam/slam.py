@@ -205,6 +205,7 @@ class MonoSLAM(ASLAM):
         )
 
         self.slam.set_use_viewer(self.use_viewer)
+        import pdb; pdb.set_trace()
         self.slam.initialize()
 
     def process(self, image: np.ndarray, tframe: float):
