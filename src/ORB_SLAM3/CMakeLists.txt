@@ -2,13 +2,16 @@ add_compile_options(-std=c++14)
 cmake_minimum_required(VERSION 2.8)
 project(ORB_SLAM3)
 
-# Make sure that the Python and CMake versions match
-if (DEFINED PY_BUILD_CMAKE_PACKAGE_VERSION)
-    if (NOT "${PY_BUILD_CMAKE_PACKAGE_VERSION}" MATCHES "^${PY_FULL_VERSION}$")
-        message(FATAL_ERROR "Version number does not match "
-                             "(${PY_BUILD_CMAKE_PACKAGE_VERSION} - ${PY_FULL_VERSION}).")
-    endif()
-endif()
+# Disable Warnings
+add_compile_options(
+    -Wno-deprecated-declarations 
+    -Wreorder 
+    -Wsign-compare 
+    -Wunused-variable 
+    -Wunused-but-set-variable 
+    -Wmaybe-uninitialized 
+    -Waggressive-loop-optimizations
+)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
@@ -38,8 +41,8 @@ find_package(Eigen3 3.1.0 REQUIRED)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}
-${PROJECT_SOURCE_DIR}/include
-${PROJECT_SOURCE_DIR}/include/CameraModels
+${PROJECT_SOURCE_DIR}/ORB_SLAM3
+${PROJECT_SOURCE_DIR}/ORB_SLAM3/CameraModels
 ${EIGEN3_INCLUDE_DIR}
 )
 
@@ -75,7 +78,7 @@ src/TwoViewReconstruction.cc
 src/Config.cc
 src/Settings.cc)
 
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
 DBoW2
 sophus
 g2o
@@ -85,6 +88,6 @@ ${EIGEN3_LIBS}
 -lcrypto
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/CameraModels>)
+target_include_directories(${PROJECT_NAME} INTERFACE PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ORB_SLAM3>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)

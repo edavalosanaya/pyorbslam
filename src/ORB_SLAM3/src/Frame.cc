@@ -24,11 +24,11 @@
 #include "ORBextractor.h"
 #include "Converter.h"
 #include "ORBmatcher.h"
-#include "GeometricCamera.h"
+#include "CameraModels/GeometricCamera.h"
 
 #include <thread>
-#include <include/CameraModels/Pinhole.h>
-#include <include/CameraModels/KannalaBrandt8.h>
+#include <CameraModels/Pinhole.h>
+#include <CameraModels/KannalaBrandt8.h>
 
 namespace ORB_SLAM3
 {

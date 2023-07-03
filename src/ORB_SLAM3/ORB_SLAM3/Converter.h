@@ -24,7 +24,7 @@
 
 #include<eigen3/Eigen/Dense>
 #include <g2o/types/types_six_dof_expmap.h>
-#include <g2o/types/types_seven_dof_expmap.>
+#include <g2o/types/types_seven_dof_expmap.h>
 
 #include <sophus/geometry.hpp>
 #include <sophus/sim3.hpp>

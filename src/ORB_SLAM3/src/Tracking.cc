@@ -24,8 +24,8 @@
 #include "Converter.h"
 #include "G2oTypes.h"
 #include "Optimizer.h"
-#include "Pinhole.h"
-#include "KannalaBrandt8.h"
+#include "CameraModels/Pinhole.h"
+#include "CameraModels/KannalaBrandt8.h"
 #include "MLPnPsolver.h"
 #include "GeometricTools.h"
 
