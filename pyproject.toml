@@ -45,15 +45,21 @@ documentation = "https://edavalosanaya.github.io/pyslam/"
 repository = "https://github.com/edavalosanaya/pyslam"
 
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["py-build-cmake~=0.1.8"]
+build-backend = "py_build_cmake.build"
 
-# https://setuptools.pypa.io/en/stable/userguide/datafiles.html
-[tool.setuptools]
-include-package-data = true
+[tool.py-build-cmake.module]
+name = "pyslam"
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.py-build-cmake.sdist]
+include = ["CMakeLists.txt", "src/*"]
+
+[tool.py-build-cmake.cmake]
+minimum_version = "3.15"
+build_type = "RelWithDebInfo"
+source_path = "src"
+build_args = ["-j"]
+install_components = ['python_binaries']
 
 # Reference:
 # https://stackoverflow.com/questions/4673373/logging-within-pytest-tests
