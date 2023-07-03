@@ -58,7 +58,7 @@ include = ["CMakeLists.txt", "src/*"]
 minimum_version = "3.15"
 build_type = "RelWithDebInfo"
 source_path = "src"
-build_args = ["-j"]
+build_args = ["-j8"]
 install_components = ['python_binaries']
 
 # Reference:
