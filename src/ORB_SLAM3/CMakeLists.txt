@@ -77,6 +77,8 @@ src/Settings.cc)
 
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
 DBoW2
+sophus
+g2o
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 -lboost_serialization

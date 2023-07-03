@@ -25,7 +25,7 @@
 #include <DBoW2/BowVector.h>
 #include <DBoW2/FeatureVector.h>
 
-#include "sophus/geometry.hpp"
+#include <sophus/geometry.hpp>
 
 #include "ImuTypes.h"
 #include "ORBVocabulary.h"
