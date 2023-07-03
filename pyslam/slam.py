@@ -4,8 +4,8 @@ import os
 
 import yaml
 import numpy as np
-import orbslam3
 
+from . import orbslam3
 from .state import State
 from .sensor import Sensor
 

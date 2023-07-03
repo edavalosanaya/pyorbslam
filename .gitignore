@@ -1,6 +1,18 @@
 # Specific file
 pyslam/ORBvoc.txt
 
+# py-build-cmake
+py-build-cmake.cross.toml
+*py-build-cmake.config.toml
+.*cache
+.py-build-cmake-cache/
+.venv
+build
+dist
+__pycache__
+*.pyc
+build-all.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

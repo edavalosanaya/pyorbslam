@@ -1,4 +1,3 @@
-
 [project]
 name = "pyslam"
 version = "0.0.1"
@@ -52,14 +51,15 @@ build-backend = "py_build_cmake.build"
 name = "pyslam"
 
 [tool.py-build-cmake.sdist]
-include = ["CMakeLists.txt", "src/*"]
+include = ["src/*"]
 
 [tool.py-build-cmake.cmake]
 minimum_version = "3.15"
-build_type = "RelWithDebInfo"
+build_type = "Release"
 source_path = "src"
-build_args = ["-j8"]
-install_components = ['python_binaries']
+find_python = true
+build_args = ["-j4"]
+install_components = ['python_modules']
 
 # Reference:
 # https://stackoverflow.com/questions/4673373/logging-within-pytest-tests

@@ -28,6 +28,11 @@ find_package(NumPy REQUIRED)
 find_package(Boost REQUIRED COMPONENTS python numpy3)
 find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
 
+message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
+message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
+message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+
 # RPATH fiddling for the library, so that the installed version can find the linked libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -38,12 +43,20 @@ ${Boost_INCLUDE_DIRS}
 ${PYTHON_NUMPY_INCLUDE_DIR}
 )
 
-add_library(${PROJECT_NAME} SHARED
-src/ORBSlamPython.cpp
-src/pyboostcvconverter/pyboost_cv4_converter.cpp)
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+set(TARGET_MODULE_NAME _orbslam3)
 
-target_link_libraries(${PROJECT_NAME}
+# add_library(${PROJECT_NAME} SHARED
+# src/ORBSlamPython.cpp
+# src/pyboostcvconverter/pyboost_cv4_converter.cpp)
+PYTHON_ADD_MODULE(${TARGET_MODULE_NAME}
+    src/ORBSlamPython.cpp 
+    src/pyboostcvconverter/pyboost_cv4_converter.cpp)
+# set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+target_compile_definitions(${TARGET_MODULE_NAME} PRIVATE
+    MODULE_NAME=$<TARGET_FILE_BASE_NAME:${TARGET_MODULE_NAME}>
+)
+
+target_link_libraries(${TARGET_MODULE_NAME}
 ORB_SLAM3
 ${OpenCV_LIBS}
 ${Boost_LIBRARIES}
