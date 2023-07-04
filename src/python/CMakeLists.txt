@@ -3,11 +3,6 @@ project(ORB_SLAM3_PYTHON_BINDING)
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
-set(PYTHON_ROOT_DIR "/home/eduardo/anaconda3/envs/ettk_dev")
-set(CMAKE_PREFIX_PATH "/home/eduardo/anaconda3/envs/ettk_dev")
-set(CMAKE_LIBRARY_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
-set(CMAKE_INCLUDE_PATH "/home/eduardo/anaconda3/envs/ettk_dev/include")
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
 
@@ -56,16 +51,21 @@ ${PYTHON_NUMPY_INCLUDE_DIR}
 
 set(TARGET_MODULE_NAME _orbslam3)
 
-# add_library(${PROJECT_NAME} SHARED
-# src/ORBSlamPython.cpp
-# src/pyboostcvconverter/pyboost_cv4_converter.cpp)
 PYTHON_ADD_MODULE(${TARGET_MODULE_NAME}
     src/ORBSlamPython.cpp 
     src/pyboostcvconverter/pyboost_cv4_converter.cpp)
-# set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+
 target_compile_definitions(${TARGET_MODULE_NAME} PRIVATE
     MODULE_NAME=$<TARGET_FILE_BASE_NAME:${TARGET_MODULE_NAME}>
 )
+
+# Hide all symbols by default (including external libraries on Linux)
+set_target_properties(${TARGET_MODULE_NAME} PROPERTIES
+    CXX_VISIBILITY_PRESET "hidden"
+    VISIBILITY_INLINES_HIDDEN true)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_link_options(${TARGET_MODULE_NAME} PRIVATE "LINKER:--exclude-libs,ALL")
+endif()
 
 target_link_libraries(${TARGET_MODULE_NAME}
 ORB_SLAM3

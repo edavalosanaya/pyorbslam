@@ -7,9 +7,10 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_PREFIX_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
-set(CMAKE_LIBRARY_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
-set(CMAKE_INCLUDE_PATH "/home/eduardo/anaconda3/envs/ettk_dev/include")
+# Handle possible Anaconda environment
+if(DEFINED ENV{CONDA_PREFIX})
+    set(CMAKE_PREFIX_PATH CONDA_PREFIX)
+endif()
 
 # Disable Warnings
 add_compile_options(
@@ -24,7 +25,7 @@ add_compile_options(
 
 add_subdirectory(DBoW2)
 add_subdirectory(g2o)
-add_subdirectory(Sophus) # Project named sophus
+add_subdirectory(Sophus) # Target named sophus
 add_subdirectory(ORB_SLAM3)
 add_subdirectory(python) # ORB_SLAM3_PYTHON_BINDING
 
