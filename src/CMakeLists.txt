@@ -7,6 +7,10 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_PREFIX_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
+set(CMAKE_LIBRARY_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
+set(CMAKE_INCLUDE_PATH "/home/eduardo/anaconda3/envs/ettk_dev/include")
+
 # Disable Warnings
 add_compile_options(
     -Wno-deprecated-declarations 

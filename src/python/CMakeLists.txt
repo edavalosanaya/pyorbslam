@@ -3,6 +3,11 @@ project(ORB_SLAM3_PYTHON_BINDING)
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
+set(PYTHON_ROOT_DIR "/home/eduardo/anaconda3/envs/ettk_dev")
+set(CMAKE_PREFIX_PATH "/home/eduardo/anaconda3/envs/ettk_dev")
+set(CMAKE_LIBRARY_PATH "/home/eduardo/anaconda3/envs/ettk_dev/lib")
+set(CMAKE_INCLUDE_PATH "/home/eduardo/anaconda3/envs/ettk_dev/include")
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
 
@@ -22,16 +27,22 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
-find_package(PythonLibs REQUIRED)
-find_package(NumPy REQUIRED)
-find_package(Boost REQUIRED COMPONENTS python numpy3)
-find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
-
+# find_package(Python 3 COMPONENTS Interpreter Development Numpy)
+find_package(PythonLibs)
+find_package(PythonInterp 3)
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+
+find_package(NumPy)
+message(STATUS "PYTHON_NUMPY_INCLUDE_DIR = ${PYTHON_NUMPY_INCLUDE_DIR}")
+
+find_package(Boost REQUIRED COMPONENTS python numpy3)
+message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+
+find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
+
 
 # RPATH fiddling for the library, so that the installed version can find the linked libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

@@ -57,7 +57,6 @@ include = ["src/*"]
 minimum_version = "3.15"
 build_type = "Release"
 source_path = "src"
-find_python = true
 build_args = ["-j4"]
 install_components = ['python_modules']
 
