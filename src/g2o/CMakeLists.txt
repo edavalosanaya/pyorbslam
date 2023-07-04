@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 PROJECT(g2o)
@@ -16,8 +16,6 @@ add_compile_options(
     -Wmaybe-uninitialized 
     -Waggressive-loop-optimizations
 )
-
-SET (G2O_LIB_TYPE SHARED)
 
 # There seems to be an issue with MSVC8
 # see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=83
@@ -60,8 +58,8 @@ ENDIF(OPENMP_FOUND AND G2O_USE_OPENMP)
 # Compiler specific options for gcc
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native")
 SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -march=native")
-# SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-# SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 
 # activate warnings !!!
 SET(g2o_C_FLAGS "${g2o_C_FLAGS} -Wall -W")
@@ -92,7 +90,7 @@ ${g2o_SOURCE_DIR}/stuff
 ${G2O_EIGEN3_INCLUDE})
 
 # Include the subdirectories
-ADD_LIBRARY(${PROJECT_NAME} ${G2O_LIB_TYPE}
+ADD_LIBRARY(${PROJECT_NAME} SHARED
 #types
 g2o/types/types_sba.h
 g2o/types/types_six_dof_expmap.h
@@ -174,7 +172,8 @@ g2o/stuff/macros.h
 g2o/stuff/timeutil.cpp
 g2o/stuff/misc.h
 g2o/stuff/timeutil.h
-g2o/stuff/os_specific.c    
+# g2o/stuff/os_specific.c # <- This is the problem, change it from a .c to a .cpp
+g2o/stuff/os_specific.cpp 
 g2o/stuff/os_specific.h
 g2o/stuff/string_tools.cpp
 g2o/stuff/property.cpp       
