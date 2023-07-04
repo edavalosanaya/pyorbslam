@@ -29,8 +29,19 @@ add_subdirectory(Sophus) # Target named sophus
 add_subdirectory(ORB_SLAM3)
 add_subdirectory(python) # ORB_SLAM3_PYTHON_BINDING
 
-# Install the executable
+# Make target's visible to each other
+set_target_properties(DBoW2 PROPERTIES
+    INSTALL_RPATH "$ORIGIN")
+set_target_properties(g2o PROPERTIES
+    INSTALL_RPATH "$ORIGIN")
+set_target_properties(sophus PROPERTIES
+    INSTALL_RPATH "$ORIGIN")
+set_target_properties(ORB_SLAM3 PROPERTIES
+    INSTALL_RPATH "$ORIGIN")
+set_target_properties(_orbslam3 PROPERTIES
+    INSTALL_RPATH "$ORIGIN")
 
+# Install the executable
 install(TARGETS DBoW2
         EXCLUDE_FROM_ALL
         COMPONENT python_modules
