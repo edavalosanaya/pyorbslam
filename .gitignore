@@ -1,5 +1,5 @@
 # Specific file
-pyslam/ORBvoc.txt
+pyorbslam/ORBvoc.txt
 
 # py-build-cmake
 py-build-cmake.cross.toml

@@ -1,4 +1,4 @@
-# pyslam
+# pyorbslam
 
 # Building from Source
 

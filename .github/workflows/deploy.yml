@@ -1,4 +1,4 @@
-name: Publish pyslam to PyPI / GitHub
+name: Publish pyorbslam to PyPI / GitHub
 
 on:
   push:
@@ -27,6 +27,7 @@ jobs:
           pip install --upgrade pip
           pip install '.[test]'
           python -m pip install --upgrade build twine
+          python -m pip install numpy
           python -m build
           twine check --strict dist/*
       - name: Publish distribution to PyPI

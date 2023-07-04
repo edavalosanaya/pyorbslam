@@ -4,10 +4,10 @@ import logging
 
 import pytest
 import cv2
-import pyslam
+import pyorbslam
 import orbslam3
 
-logger = logging.getLogger("pyslam")
+logger = logging.getLogger("pyorbslam")
 
 # DONE: .def("initialize", &ORBSlamPython::initialize)
 # .def("load_and_process_mono", &ORBSlamPython::loadAndProcessMono)
@@ -52,7 +52,7 @@ def slam_in_okay():
     slam.set_use_viewer(False)
     slam.initialize()
     
-    image_filenames, timestamps = pyslam.utils.load_images_EuRoC("/home/nicole/Datasets/EuRoC/MH01")
+    image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC("/home/nicole/Datasets/EuRoC/MH01")
     
     for idx in range(min(len(image_filenames), 10)):
         image = cv2.imread(image_filenames[idx], cv2.IMREAD_UNCHANGED)

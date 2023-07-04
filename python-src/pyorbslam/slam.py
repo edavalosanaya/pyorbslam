@@ -9,7 +9,7 @@ from . import orbslam3
 from .state import State
 from .sensor import Sensor
 
-logger = logging.getLogger("pyslam")
+logger = logging.getLogger("pyorbslam")
         
 # CONSTANTS
 SLAM_MAP = {

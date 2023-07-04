@@ -18,7 +18,7 @@ LOGGING_CONFIG = {
         },
     },
     "loggers": {
-        "pyslam": {
+        "pyorbslam": {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": True,
