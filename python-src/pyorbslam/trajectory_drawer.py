@@ -4,7 +4,6 @@ import os
 import numpy as np
 import yaml
 import plotly.graph_objects as go
-import time
 
 from .slam import ASLAM
 from .state import State

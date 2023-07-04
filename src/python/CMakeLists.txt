@@ -49,11 +49,12 @@ ${Boost_INCLUDE_DIRS}
 ${PYTHON_NUMPY_INCLUDE_DIR}
 )
 
-set(TARGET_MODULE_NAME _orbslam3)
+set(TARGET_MODULE_NAME orbslam3)
 
-PYTHON_ADD_MODULE(${TARGET_MODULE_NAME}
+add_library(${TARGET_MODULE_NAME} SHARED
     src/ORBSlamPython.cpp 
     src/pyboostcvconverter/pyboost_cv4_converter.cpp)
+set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "") # Necessary to remove liborbslam3 -> orbslam3
 
 target_compile_definitions(${TARGET_MODULE_NAME} PRIVATE
     MODULE_NAME=$<TARGET_FILE_BASE_NAME:${TARGET_MODULE_NAME}>

@@ -38,7 +38,7 @@ set_target_properties(sophus PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 set_target_properties(ORB_SLAM3 PROPERTIES
     INSTALL_RPATH "$ORIGIN")
-set_target_properties(_orbslam3 PROPERTIES
+set_target_properties(orbslam3 PROPERTIES
     INSTALL_RPATH "$ORIGIN")
 
 # Install the executable
@@ -62,7 +62,7 @@ install(TARGETS ORB_SLAM3
         COMPONENT python_modules
         DESTINATION ${PY_BUILD_CMAKE_MODULE_NAME})
 
-install(TARGETS _orbslam3
+install(TARGETS orbslam3
         EXCLUDE_FROM_ALL
         COMPONENT python_modules
         DESTINATION ${PY_BUILD_CMAKE_MODULE_NAME})
