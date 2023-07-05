@@ -29,7 +29,7 @@ STATE_MAP = {
 }
 
 CWD = pathlib.Path(os.path.abspath(__file__)).parent
-DEFAULT_VOCAB = CWD.parent / 'cpp' / 'ORB_SLAM3' / 'Vocabulary' / 'ORBvoc.txt'
+DEFAULT_VOCAB = CWD.parent.parent / 'src' / 'ORB_SLAM3' / 'Vocabulary' / 'ORBvoc.txt'
 
 
 class ASLAM:

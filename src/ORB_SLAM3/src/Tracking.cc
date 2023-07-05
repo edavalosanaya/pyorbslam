@@ -1565,6 +1565,8 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 
 Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp, string filename)
 {
+    cout << "Tracking::GrabImageMonocular Start" << endl;
+
     mImGray = im;
     if(mImGray.channels()==3)
     {
@@ -1600,6 +1602,8 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
 
     if (mState==NO_IMAGES_YET)
         t0=timestamp;
+    
+    cout << "Tracking::GrabImageMonocular 1" << endl;
 
     mCurrentFrame.mNameFile = filename;
     mCurrentFrame.mnDataset = mnNumDataset;
@@ -1609,7 +1613,10 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
 #endif
 
     lastID = mCurrentFrame.mnId;
+    cout << "Tracking::GrabImageMonocular 2" << endl;
     Track();
+    
+    cout << "Tracking::GrabImageMonocular End" << endl;
 
     return mCurrentFrame.GetPose();
 }

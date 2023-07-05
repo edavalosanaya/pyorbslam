@@ -23,11 +23,22 @@ add_compile_options(
     -Waggressive-loop-optimizations
 )
 
+# Adding testing
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 add_subdirectory(DBoW2)
 add_subdirectory(g2o)
 add_subdirectory(Sophus) # Target named sophus
 add_subdirectory(ORB_SLAM3)
 add_subdirectory(python) # ORB_SLAM3_PYTHON_BINDING
+add_subdirectory(test) # Testing the library
 
 # Make target's visible to each other
 set_target_properties(DBoW2 PROPERTIES

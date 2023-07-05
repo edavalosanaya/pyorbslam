@@ -5,7 +5,6 @@ import logging
 import pytest
 import cv2
 import pyorbslam
-import orbslam3
 
 logger = logging.getLogger("pyorbslam")
 
@@ -48,7 +47,7 @@ from .conftest import DEFAULT_VOCAB, SETTINGS_DIR
 
 @pytest.fixture(scope="module")
 def slam_in_okay():
-    slam = orbslam3.System(str(DEFAULT_VOCAB), str(SETTINGS_DIR / 'EuRoC.yaml'), orbslam3.Sensor.MONOCULAR)
+    slam = pyorbslam.orbslam3.System(str(DEFAULT_VOCAB), str(SETTINGS_DIR / 'EuRoC.yaml'), pyorbslam.orbslam3.Sensor.MONOCULAR)
     slam.set_use_viewer(False)
     slam.initialize()
     
@@ -82,9 +81,6 @@ def test_get_camera_matrix(slam_in_okay):
 @pytest.mark.skip(reason="not SEGFAULT")
 def test_get_dist_coef(slam_in_okay):
     logger.debug(f"{slam_in_okay.get_dist_coef()}")
-
-def test_get_keyframe_points(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_keyframe_points()}")
 
 def test_get_keyframe_points(slam_in_okay):
     logger.debug(f"{slam_in_okay.get_keyframe_points()}")
