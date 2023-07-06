@@ -157,6 +157,11 @@ public:
     // frames with estimated pose
     int mTrackedFr;
     bool mbStep;
+    
+    //Calibration matrix
+    cv::Mat mK;
+    Eigen::Matrix3f mK_;
+    cv::Mat mDistCoef;
 
     // True if local mapping is deactivated and we are performing only localization
     bool mbOnlyTracking;
@@ -286,10 +291,7 @@ protected:
     //Atlas
     Atlas* mpAtlas;
 
-    //Calibration matrix
-    cv::Mat mK;
-    Eigen::Matrix3f mK_;
-    cv::Mat mDistCoef;
+    // Matrix Calibration
     float mbf;
     float mImageScale;
 

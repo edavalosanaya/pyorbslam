@@ -497,7 +497,8 @@ PyObject *ORBSlamPython::getCameraMatrix() const
     {
 
         ORB_SLAM3::Tracking *pTracker = system->GetTracker();
-        cv::Mat cm = pTracker->mCurrentFrame.mK;
+        /* cv::Mat cm = pTracker->mCurrentFrame.mK; */
+        cv::Mat cm = pTracker->mK;
         return pbcvt::fromMatToNDArray(cm);
     }
     return NULL;

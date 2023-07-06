@@ -1,6 +1,8 @@
 import time
 import logging
 import numpy as np
+import imutils
+import pickle
 
 import pytest
 import cv2
@@ -14,6 +16,7 @@ logger = logging.getLogger("pyorbslam")
 # Constants
 EUROC_TEST_DATASET = TEST_DIR / 'data' / 'EuRoC' / 'MH01'
 
+
 def test_mono_slam():
     slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC_ViconRoom2.yaml')
     assert isinstance(slam, pyorbslam.MonoSLAM)
@@ -22,11 +25,11 @@ def test_mono_slam():
 
 def test_mono_slam_euroc(euroc_slam):
     image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC(EUROC_TEST_DATASET)
-    # drawer = pyorbslam.TrajectoryDrawer()
+    drawer = pyorbslam.TrajectoryDrawer()
     # fig = drawer.get_figure()
     # fig.show()
 
-    for i in range(100):
+    for i in range(500):
         
         image = cv2.imread(image_filenames[i])
 
@@ -38,6 +41,7 @@ def test_mono_slam_euroc(euroc_slam):
 
         if state == pyorbslam.State.OK:
             pose = euroc_slam.get_pose_to_target()
+            drawer.plot_trajectory(pose)
             # drawer.plot_trajectory(euroc_slam)
         
         logger.debug(f"{state}")
@@ -46,20 +50,18 @@ def test_mono_slam_euroc(euroc_slam):
         cv2.waitKey(1)
 
         
-
 def test_running_mono_slam_on_tobii(tobii_slam):
    
     test_video = TEST_DIR/'data'/'scenevideo.mp4'
     assert test_video.exists()
 
     cap = cv2.VideoCapture(str(test_video), 0)
-    drawer = pyorbslam.TrajectoryDrawer()
-    drawer.get_figure()
+    drawer = pyorbslam.TrajectoryDrawer(drawpointcloud=False)
 
     timestamp = 0
     fps = 1/24
 
-    for i in range(100):
+    for i in range(500):
 
         ret, frame = cap.read()
 
@@ -73,5 +75,10 @@ def test_running_mono_slam_on_tobii(tobii_slam):
             drawer.plot_trajectory(tobii_slam)
             # logger.debug(f"pose: {pose}")
 
-        cv2.imshow('frame', frame)
+        cv2.imshow('frame', imutils.resize(frame, width=500))
         cv2.waitKey(1)
+
+    # Save the information
+    # with open(TEST_DIR/'data'/'trajectory.pkl', 'wb') as f:
+    #     pickle.dump(tobii_slam.pose_array, f)
+    

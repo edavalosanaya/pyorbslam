@@ -1,12 +1,16 @@
 import pathlib
 import os
+import logging
+import yaml
+from typing import Optional
 
 import numpy as np
-import yaml
-import plotly.graph_objects as go
+import pyvista as pv
 
 from .slam import ASLAM
 from .state import State
+
+logger = logging.getLogger("pyorbslam")
 
 
 # Constants
@@ -19,10 +23,7 @@ class TrajectoryDrawer:
     def __init__(
         self,
         params_file=DEFAULT_SETTINGS_PATH,
-        width=None,
-        height=None,
         drawpointcloud=True,
-        useFigureWidget=True,
     ):
         """Build the Trajectory drawer
 
@@ -37,124 +38,98 @@ class TrajectoryDrawer:
             fs.readline()
             self.params = yaml.safe_load(fs)
 
-        self.eye_x = self.params["Drawer.eye.x"]
-        self.eye_y = self.params["Drawer.eye.y"]
-        self.eye_z = self.params["Drawer.eye.z"]
+        # Extract the parameters
+        self.eye_x = self.params['Drawer.eye.x']
+        self.eye_y = self.params['Drawer.eye.y']
+        self.eye_z = self.params['Drawer.eye.z']
         self.center_x = self.params["Drawer.center.x"]
         self.center_y = self.params["Drawer.center.y"]
         self.scale_grade_x = self.params["Drawer.scale_grade.x"]
         self.scale_grade_y = self.params["Drawer.scale_grade.y"]
         self.scale_grade_z = self.params["Drawer.scale_grade.z"]
-        self.point_size = self.params["Drawer.point_size"]
+
+        # Parameters
         self.drawpointcloud = drawpointcloud
-        # initialize the figure
-        if useFigureWidget == True:
-            self.figure = go.FigureWidget()
-        else:
-            self.figure = go.Figure()
-        # hide the axis and change the aspect ratio
-        self.figure.update_layout(
-            showlegend=False,
-            width=width,
-            height=height,
-            scene=dict(
-                aspectmode="manual",
-                aspectratio=dict(
-                    x=self.params["Drawer.aspectratio.x"],
-                    y=self.params["Drawer.aspectratio.y"],
-                    z=self.params["Drawer.aspectratio.z"],
-                ),
-                xaxis=dict(
-                    showticklabels=False,
-                    showgrid=False,
-                    zeroline=False,
-                    visible=False,
-                    autorange=False,
-                ),
-                yaxis=dict(
-                    showticklabels=False,
-                    showgrid=False,
-                    zeroline=False,
-                    visible=False,
-                    autorange=False,
-                ),
-                zaxis=dict(
-                    showticklabels=False,
-                    showgrid=False,
-                    zeroline=False,
-                    visible=False,
-                    autorange=False,
-                ),
-            ),
-        )
         self.prec_camera_center = None
 
-    def get_figure(self):
-        """Return the figure"""
-        return self.figure
+        # Storing mesh data
+        self.camera_data = {'mesh': None, 'actor': None}
 
-    def plot_trajectory(self, slam: ASLAM):
+        # Create plotter
+        self.plotter = pv.Plotter()
+        self.plotter.show_axes()
+        self.plotter.show(interactive_update=True)
+
+    def create_camera_mesh(self):
+
+        size_ratio = 10
+
+        h = 0.5625 / size_ratio
+        w = 1 / size_ratio
+        d = 0.2 / size_ratio
+
+        # Define the vertex coordinates of the mesh
+        pointa = [w/2, h/2, d]
+        pointb = [-w/2, h/2, d]
+        pointc = [-w/2, -h/2, d]
+        pointd = [w/2, -h/2, d]
+        pointe = [0.0, 0.0, 0.0]
+        return pv.Pyramid([pointa, pointb, pointc, pointd, pointe])
+
+    def plot_trajectory(self, camera_pose: np.ndarray, pointcloud: Optional[np.ndarray] = None):
         """Compute the trajectory and add it to the figure
-        Args:
-            slam (ASLAM): the slampy instance used to compute the pose in the image
         """
-        if slam.get_state() == State.OK:
-            # get the depth and pose
-            pose = slam.get_pose_to_target()
-            # depth = slam.get_depth()
 
-            if self.drawpointcloud:
-                # get the colored point cloud
-                points_colored = slam.get_point_cloud_colored()
+        if isinstance(pointcloud, np.ndarray):
 
-                # convert the camera coordinates to world coordinates
-                cp, colors = zip(*points_colored)
-                wp = np.array([np.dot(pose, point)[0:3] for point in cp]).reshape(-1, 3)
+            # convert the camera coordinates to world coordinates
+            cp, colors = zip(*pointcloud)
+            wp = np.array([np.dot(camera_pose, point)[0:3] for point in cp]).reshape(-1, 3)
 
-                # draw the point cloud
-                self.figure.add_scatter3d(
-                    x=wp[..., 0] * -1,
-                    y=wp[..., 1] * -1,
-                    z=wp[..., 2],
-                    mode="markers",
-                    marker=dict(
-                        size=self.point_size,
-                        color=colors,
-                    ),
-                    hoverinfo="skip",
-                )
+            # draw the point cloud
+        
+        # Drawing the path
+        camera_center = camera_pose[0:3, 3].flatten()
+        self.plotter.add_points(camera_center, color="green", render_points_as_spheres=True, point_size=6, opacity=0.5)
 
-            # get the camera center in absolute coordinates
-            camera_center = pose[0:3, 3].flatten()
-            if self.prec_camera_center is not None:
-                self.figure.add_scatter3d(
-                    x=np.array([camera_center[0], self.prec_camera_center[0]]).flatten()
-                    * -1,
-                    y=np.array([camera_center[1], self.prec_camera_center[1]]).flatten()
-                    * -1,
-                    z=np.array(
-                        [camera_center[2], self.prec_camera_center[2]]
-                    ).flatten(),
-                    marker=dict(
-                        size=self.point_size * 2, color="red", symbol="diamond"
-                    ),
-                    line=dict(width=self.point_size, color="red"),
-                    hoverinfo="skip",
-                )
-                self.figure.update_layout(
-                    scene_camera=dict(
-                        eye=dict(
-                            x=self.eye_x + camera_center[0] * self.scale_grade_x,
-                            y=self.eye_y + camera_center[1] * self.scale_grade_y,
-                            z=self.eye_z + camera_center[2] * self.scale_grade_z,
-                        ),
-                        up=dict(x=0, y=1, z=0),
-                        center=dict(
-                            x=self.center_x + camera_center[0] * self.scale_grade_x,
-                            y=self.center_y + camera_center[1] * self.scale_grade_y,
-                            z=camera_center[2] * self.scale_grade_z,
-                        ),
-                    ),
-                ),
-            self.prec_camera_center = camera_center
-            return self.figure.layout.scene
+        # get the camera center in absolute coordinates
+        if self.prec_camera_center is not None:
+            logger.debug(f"Updating plotly's camera: {camera_pose}")
+        
+            # Draw the line from previous to current point
+            line = pv.Line(self.prec_camera_center, camera_center)
+            self.plotter.add_mesh(line, color="green", line_width=3, opacity=0.2)
+           
+            # Add the camera mesh
+            camera_mesh = self.create_camera_mesh()
+            camera_mesh.transform(camera_pose)
+
+            if not self.camera_data['actor']:
+                self.camera_data['actor'] = self.plotter.add_mesh(camera_mesh, color="red", style='wireframe', opacity=0.5)
+            else:
+                self.camera_data['actor'].mapper.SetInputData(camera_mesh)
+
+        # Update camera center
+        self.prec_camera_center = camera_center
+        
+        # Update the pyvista camera (position and focus)
+        # self.plotter.set_position(
+        #     [
+        #         self.center_x + camera_center[0] * self.scale_grade_x,
+        #         self.center_y + camera_center[1] * self.scale_grade_y,
+        #         camera_center[2] * self.scale_grade_z
+        #     ]
+        # )
+
+        self.plotter.set_focus(
+            [
+                self.eye_x + camera_center[0] * self.scale_grade_x,
+                self.eye_y + camera_center[1] * self.scale_grade_y,
+                self.eye_z + camera_center[2] * self.scale_grade_z
+            ]
+        )
+        
+        # Update the plot
+        self.plotter.update()
+
+        # return self.figure.layout.scene

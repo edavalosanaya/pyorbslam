@@ -108,7 +108,10 @@ class ASLAM:
         return self.slam.get_camera_matrix()
 
     def get_state(self):
-        return STATE_MAP[self.slam.get_tracking_state()]
+        try:
+            return STATE_MAP[self.slam.get_tracking_state()]
+        except KeyError:
+            return State.LOST
 
     def get_pose_from_target(self):
         """Get the pose from the current frame T to the reference one 0."""
