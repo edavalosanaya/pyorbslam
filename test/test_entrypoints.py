@@ -43,15 +43,13 @@ logger = logging.getLogger("pyorbslam")
 # .def("load_settings_file", &ORBSlamPython::loadSettingsFile)
 
 
-from .conftest import DEFAULT_VOCAB, SETTINGS_DIR
+from .conftest import DEFAULT_VOCAB, SETTINGS_DIR, EUROC_TEST_DATASET
 
 @pytest.fixture(scope="module")
 def slam_in_okay():
-    slam = pyorbslam.orbslam3.System(str(DEFAULT_VOCAB), str(SETTINGS_DIR / 'EuRoC.yaml'), pyorbslam.orbslam3.Sensor.MONOCULAR)
-    slam.set_use_viewer(False)
-    slam.initialize()
+    slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC.yaml')
     
-    image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC("/home/nicole/Datasets/EuRoC/MH01")
+    image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC(EUROC_TEST_DATASET)
     
     for idx in range(min(len(image_filenames), 10)):
         image = cv2.imread(image_filenames[idx], cv2.IMREAD_UNCHANGED)
@@ -61,7 +59,7 @@ def slam_in_okay():
             print("failed to load image at {0}".format(image_filenames[idx]))
             raise RuntimeError()
 
-        success = slam.process_image_mono(image, tframe, str(image_filenames[idx]))
+        success = slam.process(image, tframe)
         logger.debug(f"Success: {success}")
 
     yield slam
@@ -69,32 +67,32 @@ def slam_in_okay():
 
 @pytest.mark.skip(reason="SEGFAULT")
 def test_get_current_points(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_current_points()}")
+    logger.debug(f"{slam_in_okay.slam.get_current_points()}")
 
 def test_get_frame_pose(slam_in_okay): # PASSING
-    logger.debug(f"{slam_in_okay.get_frame_pose()}")
+    logger.debug(f"{slam_in_okay.slam.get_frame_pose()}")
 
 @pytest.mark.skip(reason="SEGFAULT")
 def test_get_camera_matrix(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_camera_matrix()}")
+    logger.debug(f"{slam_in_okay.slam.get_camera_matrix()}")
 
 @pytest.mark.skip(reason="not SEGFAULT")
 def test_get_dist_coef(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_dist_coef()}")
+    logger.debug(f"{slam_in_okay.slam.get_dist_coef()}")
 
 def test_get_keyframe_points(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_keyframe_points()}")
+    logger.debug(f"{slam_in_okay.slam.get_keyframe_points()}")
     
 @pytest.mark.skip(reason="SEGFAULT")
 def test_get_trajectory_points(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_trajectory_points()}")
+    logger.debug(f"{slam_in_okay.slam.get_trajectory_points()}")
 
 def test_get_tracked_mappoints(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_tracked_mappoints()}")
+    logger.debug(f"{slam_in_okay.slam.get_tracked_mappoints()}")
 
 def test_get_num_features(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_num_features()}")
+    logger.debug(f"{slam_in_okay.slam.get_num_features()}")
 
 @pytest.mark.skip(reason="SEGFAULT")
 def test_get_num_matched_features(slam_in_okay):
-    logger.debug(f"{slam_in_okay.get_num_matched_features()}")
+    logger.debug(f"{slam_in_okay.slam.get_num_matched_features()}")

@@ -7,26 +7,12 @@ import cv2
 
 import pyorbslam
 
-from .conftest import SETTINGS_DIR, TEST_DIR
+from .conftest import SETTINGS_DIR, TEST_DIR, EUROC_TEST_DATASET
 
 logger = logging.getLogger("pyorbslam")
 
 # Constants
 EUROC_TEST_DATASET = TEST_DIR / 'data' / 'EuRoC' / 'MH01'
-
-@pytest.fixture
-def tobii_slam():
-    slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'Tobii.yaml')
-    yield slam
-    slam.shutdown()
-
-
-@pytest.fixture
-def euroc_slam():
-    slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC.yaml')
-    yield slam
-    slam.shutdown()
-
 
 def test_mono_slam():
     slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC_ViconRoom2.yaml')
@@ -83,8 +69,9 @@ def test_running_mono_slam_on_tobii(tobii_slam):
         logger.debug(tobii_slam.get_state())
 
         if state == pyorbslam.State.OK:
-            pose = tobii_slam.get_pose_to_target()
-            logger.debug(f"pose: {pose}")
+            # pose = tobii_slam.get_pose_to_target()
+            drawer.plot_trajectory(tobii_slam)
+            # logger.debug(f"pose: {pose}")
 
         cv2.imshow('frame', frame)
         cv2.waitKey(1)
