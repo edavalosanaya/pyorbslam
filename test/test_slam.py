@@ -12,7 +12,7 @@ from .conftest import SETTINGS_DIR, TEST_DIR
 logger = logging.getLogger("pyorbslam")
 
 # Constants
-EUROC_TEST_DATASET = TEST_DIR / 'data' / 'MH01'
+EUROC_TEST_DATASET = TEST_DIR / 'data' / 'EuRoC' / 'MH01'
 
 @pytest.fixture
 def tobii_slam():
@@ -82,7 +82,9 @@ def test_running_mono_slam_on_tobii(tobii_slam):
 
         logger.debug(tobii_slam.get_state())
 
-        # if state == pyorbslam.State.OK:
+        if state == pyorbslam.State.OK:
+            pose = tobii_slam.get_pose_to_target()
+            logger.debug(f"pose: {pose}")
 
-        # cv2.imshow('frame', frame)
-        # cv2.waitKey(1)
+        cv2.imshow('frame', frame)
+        cv2.waitKey(1)

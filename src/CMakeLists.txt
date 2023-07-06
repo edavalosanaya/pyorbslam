@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 project(main)
 
-# Release has CPU/Memory optimizations, but won't provide debugging info
-# Disable this if you want to debug
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+# Debugging purposes
+set(CMAKE_DEBUG FALSE)
+
+if(NOT CMAKE_DEBUG)
+    # Release has CPU/Memory optimizations, but won't provide debugging info
+    set(CMAKE_BUILD_TYPE Release)
+else()
+    set(CMAKE_BUILD_TYPE Debug)
+    message(STATUS "Running CMake build in DEBUG mode!")
 endif()
 
 # Handle possible Anaconda environment
@@ -39,6 +44,18 @@ add_subdirectory(Sophus) # Target named sophus
 add_subdirectory(ORB_SLAM3)
 add_subdirectory(python) # ORB_SLAM3_PYTHON_BINDING
 add_subdirectory(test) # Testing the library
+
+# For debugging purposes
+if(CMAKE_DEBUG)
+    target_compile_options(DBoW2 PRIVATE -g)
+    target_compile_options(g2o PRIVATE -g)
+    # target_compile_options(sophus PRIVATE -g) # INTERFACE, cannot do it
+    target_compile_options(ORB_SLAM3 PRIVATE -g)
+    target_compile_options(orbslam3 PRIVATE -g)
+endif()
+
+# This must be true to make g2o work
+# set_target_properties(g2o PROPERTIES COMPILE_DEFINITIONS Debug)
 
 # Make target's visible to each other
 set_target_properties(DBoW2 PROPERTIES

@@ -150,10 +150,10 @@ namespace g2o {
 
   void HyperGraph::clear()
   {
-    for (VertexIDMap::iterator it=_vertices.begin(); it!=_vertices.end(); ++it)
-      delete (it->second);
-    for (EdgeSet::iterator it=_edges.begin(); it!=_edges.end(); ++it)
-      delete (*it);
+    /* for (VertexIDMap::iterator it=_vertices.begin(); it!=_vertices.end(); ++it) */
+    /*   delete (it->second); */
+    /* for (EdgeSet::iterator it=_edges.begin(); it!=_edges.end(); ++it) */
+    /*   delete (*it); */
     _vertices.clear();
     _edges.clear();
   }
