@@ -1,7 +1,7 @@
 import pathlib
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 import yaml
 import numpy as np
@@ -67,7 +67,7 @@ class ASLAM:
         self.camera_width = config['Camera.width']
         self.camera_height = config['Camera.height']
 
-    def get_pose_to_target(self, precedent_frame: int = -1):
+    def get_pose_to_target(self, precedent_frame: int = -1) -> Optional[np.ndarray]:
         """Get the pose between a previous frame X in the sequence and the current one T.
 
         The param `precedent_frame` allows to distinguish between different situations:
@@ -90,13 +90,7 @@ class ASLAM:
 
         """
         if self.slam.get_tracking_state() == orbslam3.TrackingState.OK:
-            if precedent_frame <= 0:
-                return np.linalg.inv(self.slam.get_frame_pose())
-            else:
-                return np.dot(
-                    self.slam.get_pose_to_target(),
-                    np.linalg.inv(self.pose_array[-precedent_frame]),
-                )
+            return np.linalg.inv(self.pose_array[precedent_frame])
 
         return None
 
@@ -158,33 +152,33 @@ class ASLAM:
                 depth[point[1], point[0]] = cp[2]
         return depth
 
-    def _get_2d_point(self):
-        """This private method is used to compute the transormation between the absolute point to the image point
+    # def _get_2d_point(self):
+    #     """This private method is used to compute the transormation between the absolute point to the image point
 
-        Return:
-            a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
+    #     Return:
+    #         a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
 
-        """
-        points2D = []
-        points = self.get_abs_cloud()
-        camera_matrix = self.slam.get_camera_matrix()
-        pose = self.get_pose_from_target()
-        for point in points:
-            point = np.append(point, [1]).reshape(4, 1)
-            camera_points = np.dot(pose, point)
-            if camera_points[2] >= 0:
-                u = (
-                    camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
-                    + camera_matrix[0, 2]
-                )
-                v = (
-                    camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
-                    + camera_matrix[1, 2]
-                )
-            if int(v) in range(0, self.camera_height):
-                if int(u) in range(0, self.camera_width):
-                    points2D.append([camera_points, (int(u), int(v))])
-        return points2D
+    #     """
+    #     points2D = []
+    #     points = self.get_abs_cloud()
+    #     camera_matrix = self.slam.get_camera_matrix()
+    #     pose = self.get_pose_from_target()
+    #     for point in points:
+    #         point = np.append(point, [1]).reshape(4, 1)
+    #         camera_points = np.dot(pose, point)
+    #         if camera_points[2] >= 0:
+    #             u = (
+    #                 camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
+    #                 + camera_matrix[0, 2]
+    #             )
+    #             v = (
+    #                 camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
+    #                 + camera_matrix[1, 2]
+    #             )
+    #         if int(v) in range(0, self.camera_height):
+    #             if int(u) in range(0, self.camera_width):
+    #                 points2D.append([camera_points, (int(u), int(v))])
+    #     return points2D
 
     def reset(self):
         self.slam.reset()
@@ -210,7 +204,6 @@ class MonoSLAM(ASLAM):
         )
 
         self.slam.set_use_viewer(self.use_viewer)
-        # import pdb; pdb.set_trace()
         self.slam.initialize()
 
     def process(self, image: np.ndarray, tframe: float):
@@ -225,9 +218,9 @@ class MonoSLAM(ASLAM):
 
         """
         self.image = image
-        self.slam.process_image_mono(image, tframe, "0")
+        pose = self.slam.process_image_mono(image, tframe, "0")
         if self.get_state() == State.OK:
-            self.pose_array.append(self.get_pose_to_target())
+            self.pose_array.append(pose)
         return self.get_state()
 
 class StereoSLAM(ASLAM):

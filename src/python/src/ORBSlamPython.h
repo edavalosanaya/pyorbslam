@@ -19,8 +19,8 @@ public:
 
     bool initialize();
     bool isRunning();
-    bool loadAndProcessMono(std::string imageFile, double timestamp);
-    bool processMono(cv::Mat image, double timestamp, std::string imageFile);
+    PyObject *loadAndProcessMono(std::string imageFile, double timestamp);
+    PyObject *processMono(cv::Mat image, double timestamp, std::string imageFile);
     bool loadAndProcessStereo(std::string leftImageFile, std::string rightImageFile, double timestamp);
     bool processStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp);
     bool loadAndProcessImuMono(std::string imageFile, double timestamp, boost::python::numpy::ndarray imu);
@@ -36,7 +36,6 @@ public:
     boost::python::list getCurrentPoints() const;
     ORB_SLAM3::Tracking::eTrackingState getTrackingState() const;
     PyObject *getCameraMatrix() const;
-    PyObject *getFramePose() const;
     unsigned int getNumFeatures() const;
     unsigned int getNumMatches() const;
     boost::python::tuple getDistCoeff() const;

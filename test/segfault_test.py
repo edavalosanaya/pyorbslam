@@ -11,7 +11,7 @@ logger = logging.getLogger("pyorbslam")
 # Constants
 GIT_ROOT = pathlib.Path(os.path.abspath(__file__)).parent.parent
 SETTING_FILE = GIT_ROOT / 'settings' / "EuRoC.yaml"
-EUROC_TEST_DATASET = GIT_ROOT / 'test' / 'data' / 'MH01'
+EUROC_TEST_DATASET = GIT_ROOT / 'test' / 'data' / 'EuRoC' / 'MH01'
 
 image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC(EUROC_TEST_DATASET)
 

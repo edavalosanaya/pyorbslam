@@ -80,11 +80,11 @@ class TrajectoryDrawer:
         """Compute the trajectory and add it to the figure
         """
 
-        if isinstance(pointcloud, np.ndarray):
+        # if isinstance(pointcloud, np.ndarray):
 
-            # convert the camera coordinates to world coordinates
-            cp, colors = zip(*pointcloud)
-            wp = np.array([np.dot(camera_pose, point)[0:3] for point in cp]).reshape(-1, 3)
+        #     # convert the camera coordinates to world coordinates
+        #     cp, colors = zip(*pointcloud)
+        #     wp = np.array([np.dot(camera_pose, point)[0:3] for point in cp]).reshape(-1, 3)
 
             # draw the point cloud
         
@@ -94,7 +94,7 @@ class TrajectoryDrawer:
 
         # get the camera center in absolute coordinates
         if self.prec_camera_center is not None:
-            logger.debug(f"Updating plotly's camera: {camera_pose}")
+            # logger.debug(f"Updating plotly's camera: {camera_pose}")
         
             # Draw the line from previous to current point
             line = pv.Line(self.prec_camera_center, camera_center)

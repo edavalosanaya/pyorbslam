@@ -64,7 +64,6 @@ BOOST_PYTHON_MODULE(orbslam3)
         .def("activateSLAM", &ORBSlamPython::activateSLAMTraking)
         .def("deactivateSLAM", &ORBSlamPython::deactivateSLAMTraking)
         .def("get_current_points", &ORBSlamPython::getCurrentPoints)
-        .def("get_frame_pose", &ORBSlamPython::getFramePose)
         .def("get_camera_matrix", &ORBSlamPython::getCameraMatrix)
         .def("get_dist_coef", &ORBSlamPython::getDistCoeff)
         .def("set_mode", &ORBSlamPython::setMode)
@@ -126,11 +125,12 @@ void ORBSlamPython::reset()
     }
 }
 
-bool ORBSlamPython::loadAndProcessMono(std::string imageFile, double timestamp)
+PyObject *ORBSlamPython::loadAndProcessMono(std::string imageFile, double timestamp)
 {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
     if (!system)
     {
-        return false;
+        return pbcvt::fromMatToNDArray(matrix);
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
     if (bUseRGB)
@@ -143,22 +143,19 @@ bool ORBSlamPython::loadAndProcessMono(std::string imageFile, double timestamp)
 
 vector<ORB_SLAM3::IMU::Point> convertImuFromNDArray(boost::python::numpy::ndarray imu);
 
-bool ORBSlamPython::processMono(cv::Mat image, double timestamp, std::string imageFile)
+PyObject *ORBSlamPython::processMono(cv::Mat image, double timestamp, std::string imageFile)
 {
-    if (!system)
-    {
-        return false;
-    }
-    if (image.data)
-    {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    
+    if (system && image.data){
+
         Sophus::SE3f sophusPose = system->TrackMonocular(image, timestamp, vector<ORB_SLAM3::IMU::Point>(), imageFile);
         cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        return !pose.empty();
+        if (pose.rows * pose.cols > 0){
+            return pbcvt::fromMatToNDArray(pose);
+        }
     }
-    else
-    {
-        return false;
-    }
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
 bool ORBSlamPython::loadAndProcessImuMono(std::string imageFile, double timestamp, boost::python::numpy::ndarray imu)
@@ -324,6 +321,18 @@ void ORBSlamPython::deactivateSLAMTraking()
 
 ORB_SLAM3::Tracking::eTrackingState ORBSlamPython::getTrackingState() const
 {
+    /*
+    // Tracking states
+    enum eTrackingState{
+        SYSTEM_NOT_READY=-1,
+        NO_IMAGES_YET=0,
+        NOT_INITIALIZED=1,
+        OK=2,
+        RECENTLY_LOST=3,
+        LOST=4,
+        OK_KLT=5
+    };
+    */
     if (system)
     {
         return static_cast<ORB_SLAM3::Tracking::eTrackingState>(system->GetTrackingState());
@@ -473,22 +482,6 @@ boost::python::list ORBSlamPython::getCurrentPoints() const
         return map_points;
     }
     return boost::python::list();
-}
-
-PyObject *ORBSlamPython::getFramePose() const
-{
-    if (system)
-    {
-
-        ORB_SLAM3::Tracking *pTracker = system->GetTracker();
-        Sophus::SE3f sophusPose = pTracker->mCurrentFrame.GetPose();
-        cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        if (pose.rows * pose.cols > 0)
-        {
-            return pbcvt::fromMatToNDArray(pose);
-        }
-    }
-    return NULL;
 }
 
 PyObject *ORBSlamPython::getCameraMatrix() const

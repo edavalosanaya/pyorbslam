@@ -72,7 +72,7 @@ TEST(ORBSLAM3Test, TestMonocularSLAM) {
     int proccIm = 0;
     /* for(int ni=0; ni<strImageFilenames.size(); ni++, proccIm++){ */
     /* int length = strImageFilenames.size(); */
-    int length = 10;
+    int length = 100;
     for(int ni=0; ni<length; ni++, proccIm++){
         cout << "Processing " << ni << "/" << length << endl;
 
@@ -94,8 +94,15 @@ TEST(ORBSLAM3Test, TestMonocularSLAM) {
 
         // Pass the image to the SLAM system
         cout << "tframe = " << tframe << endl;
-        SLAM.TrackMonocular(im, tframe); //
+        Sophus::SE3f Tcw = SLAM.TrackMonocular(im, tframe); //
         cout << "state: " << SLAM.GetTrackingState() << endl;
+        cout << "pose: " << Tcw.matrix() << endl;
+
+        // Trying accessing the data from the tracker
+        /* ORB_SLAM3::Tracking *pTracker = SLAM.GetTracker(); */
+        /* Sophus::SE3f sophusPose = pTracker->mCurrentFrame.GetPose(); */
+        /* cout << "pTracker mCurrentFrame: Sophus::SE3f=" << sophusPose.matrix() << endl; */
+
         }
 
     // Shutdown

@@ -25,9 +25,7 @@ def test_mono_slam():
 
 def test_mono_slam_euroc(euroc_slam):
     image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC(EUROC_TEST_DATASET)
-    drawer = pyorbslam.TrajectoryDrawer()
-    # fig = drawer.get_figure()
-    # fig.show()
+    # drawer = pyorbslam.TrajectoryDrawer()
 
     for i in range(500):
         
@@ -37,15 +35,11 @@ def test_mono_slam_euroc(euroc_slam):
             raise ValueError(f"failed to load image: {image_filenames[i]}")
 
         state = euroc_slam.process(image, timestamps[i])
-        pose = np.array([1,2,3])
 
         if state == pyorbslam.State.OK:
             pose = euroc_slam.get_pose_to_target()
-            drawer.plot_trajectory(pose)
-            # drawer.plot_trajectory(euroc_slam)
+            # drawer.plot_trajectory(pose)
         
-        logger.debug(f"{state}")
-
         cv2.imshow('frame', image)
         cv2.waitKey(1)
 
@@ -61,7 +55,7 @@ def test_running_mono_slam_on_tobii(tobii_slam):
     timestamp = 0
     fps = 1/24
 
-    for i in range(500):
+    for i in range(300):
 
         ret, frame = cap.read()
 
@@ -71,8 +65,8 @@ def test_running_mono_slam_on_tobii(tobii_slam):
         logger.debug(tobii_slam.get_state())
 
         if state == pyorbslam.State.OK:
-            # pose = tobii_slam.get_pose_to_target()
-            drawer.plot_trajectory(tobii_slam)
+            pose = tobii_slam.get_pose_to_target()
+            drawer.plot_trajectory(pose)
             # logger.debug(f"pose: {pose}")
 
         cv2.imshow('frame', imutils.resize(frame, width=500))
