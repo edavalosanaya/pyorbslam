@@ -58,7 +58,7 @@ include = ["src/*"]
 minimum_version = "3.15"
 build_type = "Release"
 source_path = "src"
-build_args = ["-j2"]
+build_args = ["-j3"]
 install_components = ['python_modules']
 install_args = ['--verbose']
 

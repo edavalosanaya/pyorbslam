@@ -53,7 +53,7 @@ while True
 
     # If all things work, then we get a camera pose (YAY!)
     if state == pyorbslam.State.OK:
-        pose = tobii_slam.get_pose_to_target()
+        pose = slam.get_pose_to_target()
         drawer.plot_trajectory(pose)
 
     # Show the image

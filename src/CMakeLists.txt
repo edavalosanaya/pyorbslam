@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(main)
 
 # Debugging purposes
-set(CMAKE_DEBUG FALSE)
+set(CMAKE_DEBUG TRUE)
 
 if(NOT CMAKE_DEBUG)
     # Release has CPU/Memory optimizations, but won't provide debugging info

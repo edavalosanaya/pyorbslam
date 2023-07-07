@@ -66,7 +66,7 @@ def test_running_mono_slam_on_tobii(tobii_slam):
 
         if state == pyorbslam.State.OK:
             pose = tobii_slam.get_pose_to_target()
-            drawer.plot_trajectory(pose)
+            # drawer.plot_trajectory(pose)
             # logger.debug(f"pose: {pose}")
 
         cv2.imshow('frame', imutils.resize(frame, width=500))

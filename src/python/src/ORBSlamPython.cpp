@@ -158,12 +158,13 @@ PyObject *ORBSlamPython::processMono(cv::Mat image, double timestamp, std::strin
     return pbcvt::fromMatToNDArray(matrix);
 }
 
-bool ORBSlamPython::loadAndProcessImuMono(std::string imageFile, double timestamp, boost::python::numpy::ndarray imu)
+PyObject *ORBSlamPython::loadAndProcessImuMono(std::string imageFile, double timestamp, boost::python::numpy::ndarray imu)
 {
 
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
     if (!system)
     {
-        return false;
+        return pbcvt::fromMatToNDArray(matrix);
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
     if (bUseRGB)
@@ -173,30 +174,28 @@ bool ORBSlamPython::loadAndProcessImuMono(std::string imageFile, double timestam
     return this->processImuMono(im, timestamp, imageFile, imu);
 }
 
-bool ORBSlamPython::processImuMono(cv::Mat image, double timestamp, std::string imageFile, boost::python::numpy::ndarray imu)
+PyObject *ORBSlamPython::processImuMono(cv::Mat image, double timestamp, std::string imageFile, boost::python::numpy::ndarray imu)
 {
-    if (!system)
-    {
-        return false;
-    }
-    if (image.data)
-    {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    
+    if (system && image.data){
+
         vector<ORB_SLAM3::IMU::Point> vImuMeas = convertImuFromNDArray(imu);
         Sophus::SE3f sophusPose = system->TrackMonocular(image, timestamp, vImuMeas);
         cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        return !pose.empty();
+        if (pose.rows * pose.cols > 0){
+            return pbcvt::fromMatToNDArray(pose);
+        }
     }
-    else
-    {
-        return false;
-    }
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
-bool ORBSlamPython::loadAndProcessStereo(std::string leftImageFile, std::string rightImageFile, double timestamp)
+PyObject *ORBSlamPython::loadAndProcessStereo(std::string leftImageFile, std::string rightImageFile, double timestamp)
 {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
     if (!system)
     {
-        return false;
+        return pbcvt::fromMatToNDArray(matrix);
     }
     cv::Mat leftImage = cv::imread(leftImageFile, cv::IMREAD_COLOR);
     cv::Mat rightImage = cv::imread(rightImageFile, cv::IMREAD_COLOR);
@@ -208,29 +207,28 @@ bool ORBSlamPython::loadAndProcessStereo(std::string leftImageFile, std::string 
     return this->processStereo(leftImage, rightImage, timestamp);
 }
 
-bool ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp)
+PyObject *ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp)
 {
-    if (!system)
-    {
-        return false;
-    }
-    if (leftImage.data && rightImage.data)
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    
+    if (system && leftImage.data && rightImage.data)
     {
         Sophus::SE3f sophusPose = system->TrackStereo(leftImage, rightImage, timestamp);
         cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        return !pose.empty();
+        if (pose.rows * pose.cols > 0){
+            return pbcvt::fromMatToNDArray(pose);
+        }
     }
-    else
-    {
-        return false;
-    }
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
-bool ORBSlamPython::loadAndProcessImuStereo(std::string leftImageFile, std::string rightImageFile, double timestamp, boost::python::numpy::ndarray imu)
+PyObject *ORBSlamPython::loadAndProcessImuStereo(std::string leftImageFile, std::string rightImageFile, double timestamp, boost::python::numpy::ndarray imu)
 {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    
     if (!system)
     {
-        return false;
+        return pbcvt::fromMatToNDArray(matrix);
     }
     cv::Mat leftImage = cv::imread(leftImageFile, cv::IMREAD_COLOR);
     cv::Mat rightImage = cv::imread(rightImageFile, cv::IMREAD_COLOR);
@@ -242,30 +240,28 @@ bool ORBSlamPython::loadAndProcessImuStereo(std::string leftImageFile, std::stri
     return this->processImuStereo(leftImage, rightImage, timestamp, imu);
 }
 
-bool ORBSlamPython::processImuStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp, boost::python::numpy::ndarray imu)
+PyObject *ORBSlamPython::processImuStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp, boost::python::numpy::ndarray imu)
 {
-    if (!system)
-    {
-        return false;
-    }
-    if (leftImage.data && rightImage.data)
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    
+    if (system && leftImage.data && rightImage.data)
     {
         vector<ORB_SLAM3::IMU::Point> vImuMeas = convertImuFromNDArray(imu);
         Sophus::SE3f sophusPose = system->TrackStereo(leftImage, rightImage, timestamp, vImuMeas);
         cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        return !pose.empty();
+        if (pose.rows * pose.cols > 0){
+            return pbcvt::fromMatToNDArray(pose);
+        }
     }
-    else
-    {
-        return false;
-    }
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
-bool ORBSlamPython::loadAndProcessRGBD(std::string imageFile, std::string depthImageFile, double timestamp)
+PyObject *ORBSlamPython::loadAndProcessRGBD(std::string imageFile, std::string depthImageFile, double timestamp)
 {
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
     if (!system)
     {
-        return false;
+        return pbcvt::fromMatToNDArray(matrix);
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
     if (bUseRGB)
@@ -276,22 +272,18 @@ bool ORBSlamPython::loadAndProcessRGBD(std::string imageFile, std::string depthI
     return this->processRGBD(im, imDepth, timestamp);
 }
 
-bool ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timestamp)
+PyObject *ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timestamp)
 {
-    if (!system)
-    {
-        return false;
-    }
-    if (image.data && depthImage.data)
+    cv::Mat matrix = cv::Mat::zeros(4,4, CV_32FC1);
+    if (system && image.data && depthImage.data)
     {
         Sophus::SE3f sophusPose = system->TrackRGBD(image, depthImage, timestamp);
         cv::Mat pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        return !pose.empty();
+        if (pose.rows * pose.cols > 0){
+            return pbcvt::fromMatToNDArray(pose);
+        }
     }
-    else
-    {
-        return false;
-    }
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
 void ORBSlamPython::shutdown()
@@ -486,6 +478,8 @@ boost::python::list ORBSlamPython::getCurrentPoints() const
 
 PyObject *ORBSlamPython::getCameraMatrix() const
 {
+    cv::Mat matrix = cv::Mat::zeros(3,3, CV_32FC1);
+
     if (system)
     {
 
@@ -494,7 +488,7 @@ PyObject *ORBSlamPython::getCameraMatrix() const
         cv::Mat cm = pTracker->mK;
         return pbcvt::fromMatToNDArray(cm);
     }
-    return NULL;
+    return pbcvt::fromMatToNDArray(matrix);
 }
 
 boost::python::tuple ORBSlamPython::getDistCoeff() const
