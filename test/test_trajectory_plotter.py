@@ -22,7 +22,7 @@ def example_trajectory():
 def test_plot_trajectory(example_trajectory):
     
     drawer = pyorbslam.TrajectoryDrawer()
-    logger.debug(f"Trajectory: {example_trajectory}")
+    # logger.debug(f"Trajectory: {example_trajectory}")
 
     for pose in example_trajectory:
         drawer.plot_trajectory(pose)

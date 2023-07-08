@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import imutils
 import pickle
+import time
 
 import pytest
 import cv2
@@ -42,6 +43,10 @@ def test_mono_slam_euroc(euroc_slam):
         
         cv2.imshow('frame', image)
         cv2.waitKey(1)
+    
+    # Save the information
+    with open(TEST_DIR/'data'/'trajectory.pkl', 'wb') as f:
+        pickle.dump(euroc_slam.pose_array, f)
 
         
 def test_running_mono_slam_on_tobii(tobii_slam):
@@ -55,24 +60,24 @@ def test_running_mono_slam_on_tobii(tobii_slam):
     timestamp = 0
     fps = 1/24
 
-    for i in range(300):
+    # for i in range(300):
+    while True:
 
+        tic = time.time()
         ret, frame = cap.read()
 
         state = tobii_slam.process(frame, timestamp)
         timestamp += fps
-
-        logger.debug(tobii_slam.get_state())
 
         if state == pyorbslam.State.OK:
             pose = tobii_slam.get_pose_to_target()
             # drawer.plot_trajectory(pose)
             # logger.debug(f"pose: {pose}")
 
+        toc = time.time()
         cv2.imshow('frame', imutils.resize(frame, width=500))
         cv2.waitKey(1)
-
-    # Save the information
-    # with open(TEST_DIR/'data'/'trajectory.pkl', 'wb') as f:
-    #     pickle.dump(tobii_slam.pose_array, f)
+       
+        # import pdb; pdb.set_trace()
+        logger.debug(f"{tobii_slam.get_state()} - {(1/(toc - tic)):.2f}")
     
