@@ -19,10 +19,15 @@ def example_trajectory():
 
     return data
 
+def test_vispy_app():
+    app = pyorbslam.VispyApp()
+    app.run()
+
 def test_plot_trajectory(example_trajectory):
     
     drawer = pyorbslam.TrajectoryDrawer()
+    time.sleep(3)
     # logger.debug(f"Trajectory: {example_trajectory}")
 
-    for pose in example_trajectory:
-        drawer.plot_trajectory(pose)
+    # for pose in example_trajectory:
+    #     drawer.plot_trajectory(pose)
