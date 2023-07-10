@@ -27,11 +27,18 @@ class TrajectoryDrawer:
         # Container information
         self.trajectory_line = np.empty((0,3))
 
+    def plot_path(self, line: np.ndarray):
+        
+        if not 'path' in self.client.visuals:
+            self.client.create_visual('path', 'line', line)
+        else:
+            self.client.update_visual('path', 'line', line)
+
     def plot_trajectory(self, pose: np.ndarray):
 
         # Extract the information here
-        camera_center = pose[0:3, 3].flatten()
-        self.trajectory_line = np.append(self.trajectory_line, camera_center)[-30:, :]
+        camera_center = pose[0:3, 3].reshape((1,3))
+        self.trajectory_line = np.concatenate((self.trajectory_line, camera_center))[-30:]
         
         if not 'trajectory_line' in self.client.visuals:
             self.client.create_visual('trajectory_line', 'line', self.trajectory_line)
@@ -40,6 +47,9 @@ class TrajectoryDrawer:
 
     def plot_pointcloud(self):
         ...
+
+    def stay(self):
+        self.app_proc.join()
 
     def shutdown(self):
         self.client.shutdown()

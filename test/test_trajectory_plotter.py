@@ -2,6 +2,7 @@ import time
 import pickle
 import logging
 
+import numpy as np
 import pytest
 import pyorbslam
 
@@ -19,17 +20,35 @@ def example_trajectory():
 
     return data
 
+
 def test_qt_app():
     app = pyorbslam.TDApp()
     app.run()
+
 
 def test_start_and_stop_app():
     
     drawer = pyorbslam.TrajectoryDrawer()
     time.sleep(2)
 
+
+def test_plot_line(example_trajectory):
+    drawer = pyorbslam.TrajectoryDrawer()
+
+    line = np.array([
+        [0,0,0],
+        [0.5, 0.3, 0.1],
+        [1,1,1]
+    ])
+    drawer.plot_path(line)
+
+    drawer.stay()
+
+
 def test_plot_trajectory(example_trajectory):
     drawer = pyorbslam.TrajectoryDrawer()
 
     for pose in example_trajectory:
         drawer.plot_trajectory(pose)
+
+    drawer.stay()

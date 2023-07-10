@@ -28,13 +28,18 @@ class TDClient:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.PUB)
         self._zmq_port = self._zmq_socket.bind_to_random_port(f"tcp://{self._client_host}")
-        time.sleep(0.25)
+        time.sleep(0.5)
 
         # Inform server to subscribe to my 3D visuals
-        # response = requests.post(f"{self.url}/config/zeromq", json={'ip': self._client_host, 'port': self._zmq_port})
-        
-        # if response.status_code != requests.status_codes.codes.ok:
-        #     logger.error(f"{self}: Failed to create SUB/PUB connection!")
+        response = requests.post(f"{self.url}/config/zeromq", json={'ip': self._client_host, 'port': self._zmq_port})
+       
+        # Reportin success/failure
+        if response.status_code == requests.status_codes.codes.ok:
+            logger.debug(f"{self}: Successful creating SUB/PUB connection!")
+            time.sleep(1)
+        else:
+            logger.error(f"{self}: Failed to create SUB/PUB connection!")
+
 
     def __str__(self):
         return "<TDClient>"
@@ -57,6 +62,9 @@ class TDClient:
 
             # Record the creation
             self.visuals[name] = data
+        
+            # Then send the updated visual
+            self.update_visual(name, vtype, data)
 
         else:
             logger.debug(f"{self}: Failed to create visual: {name}")
@@ -68,6 +76,7 @@ class TDClient:
             return None
 
         self._zmq_socket.send(serialize(DataChunk(name, vtype, data)))
+        logger.debug(f"{self}: Sent visual via ZeroMQ")
              
 
     def delete_visual(self, name: str):
@@ -78,7 +87,7 @@ class TDClient:
             logger.error(f"{self}: Failed to delete visual: {name}")
 
     def shutdown(self):
-        response = requests.get(f"{self.url}/shutdown", timeout=5)
+        response = requests.get(f"{self.url}/shutdown", timeout=0.1)
 
         if response.status_code == requests.status_codes.codes.ok:
             logger.debug(f"{self}: Successful shutdown")

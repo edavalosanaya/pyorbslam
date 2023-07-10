@@ -45,10 +45,10 @@ class TDApp:
         self.cbus.closeApp.connect(self.window.close)
 
         # Setup ZeroMQ SUB
-        self.zmq_poller = ThreadedZmqPoller(self.cbus)
+        self.zmq_poller = ThreadedZmqPoller(self.cbus, self.window)
          
         # Setup the server
-        self.server = HttpServer(self.port, self.cbus)
+        self.server = HttpServer(self.port, self.cbus, self.window)
        
         # Run
         self.app.exec_()
