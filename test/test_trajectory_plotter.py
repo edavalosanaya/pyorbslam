@@ -20,13 +20,14 @@ def example_trajectory():
     return data
 
 def test_qt_app():
-    app = pyorbslam.QtApp()
-    app.exec_()
+    app = pyorbslam.TDApp()
+    app.run()
 
 def test_plot_trajectory(example_trajectory):
     
     drawer = pyorbslam.TrajectoryDrawer()
     time.sleep(3)
+    drawer.shutdown()
     # logger.debug(f"Trajectory: {example_trajectory}")
 
     # for pose in example_trajectory:

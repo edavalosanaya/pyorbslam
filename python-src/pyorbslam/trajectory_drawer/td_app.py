@@ -1,5 +1,6 @@
 import pathlib
 import os
+import sys
 import logging
 from functools import cached_property
 from typing import Optional
@@ -19,24 +20,13 @@ N = 100
 # Constants
 DEFAULT_SETTINGS_PATH = pathlib.Path(os.path.abspath(__file__)).parent / 'settings.yaml'
 
-class QtApp(QtWidgets.QApplication):
+
+class TDApp:
 
     def __init__(self, port: int = 9000):
-        super().__init__([])
 
         # Save input parameters
         self.port = port
-
-        # Setup the GUI
-        self.window = MyWidget()
-        self.window.resize(1280, 720)
-        self.window.show()
-        self.window.setWindowTitle("Lidar points")
-        self.window.setCameraPosition(distance=40)
-        self.window.raise_()
-         
-        # Setup the server
-        self.setup_server()
 
     @cached_property
     def server(self):
@@ -51,7 +41,7 @@ class QtApp(QtWidgets.QApplication):
         # Adding routes
         self.server.add_routes([
             web.get("/", self.hello),
-            web.get("/shutdown", self.shutdown)
+            web.get("/shutdown", self.shutdown_server)
         ])
 
         # Supporting the shutdown communication
@@ -68,17 +58,34 @@ class QtApp(QtWidgets.QApplication):
         await self._site.start()
 
         self.port = self._site._server.sockets[0].getsockname()[1]
-        logger.debug(f"Server running at localhost:{self.port}/")
+        logger.debug(f"Server running at localhost:{self.port}")
 
     async def hello(self, request):
         return web.Response(text="Hello World!")
 
-    async def shutdown(self, request):
+    async def shutdown_server(self, request):
+        logger.debug(f"Server shutting down!")
         self.c.closeApp.emit()
-        return web.Response(text="Shutting down")
+        return web.json_response({"msg": "Shutting down"})
 
-    def exec_(self):
-        super().exec_()
+    def run(self):
+
+        # Create the app
+        self.app = QtWidgets.QApplication(sys.argv)
+        
+        # Setup the GUI
+        self.window = MyWidget()
+        self.window.resize(1280, 720)
+        self.window.show()
+        self.window.setWindowTitle("Lidar points")
+        self.window.setCameraPosition(distance=40)
+        self.window.raise_()
+         
+        # Setup the server
+        self.setup_server()
+       
+        # Run
+        self.app.exec_()
         self._thread.stop()
 
 class Communicate(QtCore.QObject):
@@ -104,18 +111,3 @@ class MyWidget(gl.GLViewWidget):
         points = np.random.uniform(low=0, high=1, size=(N,3))
         colors = np.random.uniform(low=0, high=1, size=(N,4))
         self.setData(points, colors)
-
-
-class TrajectoryDrawer:
-
-    def __init__(self):
-
-        # Create the app
-        self.app =QtApp()
-
-        # Start the VisPy application process
-        self.app_proc = mp.Process(target=self.app.exec_)
-        self.app_proc.start()
-
-    def __del__(self):
-        self.app_proc.join()
