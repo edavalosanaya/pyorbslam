@@ -1,16 +1,16 @@
 import pathlib
 import os
 import logging
-import yaml
-import sys
+from functools import cached_property
 from typing import Optional
 
-from vispy import app, scene
+from aiohttp import web
+from PyQt5 import QtCore, QtWidgets
 import multiprocessing as mp
 import numpy as np
-import pyvista as pv
+import pyqtgraph.opengl as gl
 
-app.use_app(backend_name='glfw')
+from .async_loop_thread import AsyncLoopThread
 
 logger = logging.getLogger("pyorbslam")
 
@@ -19,51 +19,91 @@ N = 100
 # Constants
 DEFAULT_SETTINGS_PATH = pathlib.Path(os.path.abspath(__file__)).parent / 'settings.yaml'
 
+class QtApp(QtWidgets.QApplication):
 
-class VispyApp:
+    def __init__(self, port: int = 9000):
+        super().__init__([])
 
-    def __init__(self):
+        # Save input parameters
+        self.port = port
 
-        # Imperative declearations
-        self.queue: Optional[mp.Queue] = None
+        # Setup the GUI
+        self.window = MyWidget()
+        self.window.resize(1280, 720)
+        self.window.show()
+        self.window.setWindowTitle("Lidar points")
+        self.window.setCameraPosition(distance=40)
+        self.window.raise_()
+         
+        # Setup the server
+        self.setup_server()
 
-        # Configuring the plot
-        self.canvas = scene.SceneCanvas(keys='interactive', show=True)
-        self.view = self.canvas.central_widget.add_view()
-        self.view.camera = 'arcball'  # or try 'arcball'
-        self.axis = scene.visuals.XYZAxis(parent=self.view.scene)
+    @cached_property
+    def server(self):
+        return web.Application()
 
-        # Adding elements
-        self.scatter = scene.visuals.Markers()
-        self.view.add(self.scatter)
-
-        # Creating separate thread to check for updates and queue msgs
-        self.timer = app.Timer()
-        self.timer.connect(self.update)
-        self.timer.start(0.05)
+    def setup_server(self):
         
-    def update(self, event):
+        # Create the async loop thread
+        self._thread = AsyncLoopThread()
+        self._thread.start()
 
-        # If given queue
-        # if self.queue:
+        # Adding routes
+        self.server.add_routes([
+            web.get("/", self.hello),
+            web.get("/shutdown", self.shutdown)
+        ])
 
-        #     # Draw the msg
-        #     try:
-        #         msg = self.queue.get(block=False)
-        #     except 
+        # Supporting the shutdown communication
+        self.c = Communicate()
+        self.c.closeApp.connect(self.window.close)
+
+        # Run in an AsyncLoopThread
+        self._thread.exec(self.start_server()).result(timeout=10)
         
-        pts = np.random.uniform(low=0, high=1, size=(N,3))
-        color = np.random.uniform(low=0, high=1, size=(N,3))
-        self.scatter.set_data(pts, edge_color=(0.5, 0.1, 0, .5), face_color=color, size=5)
-        self.canvas.update()
+    async def start_server(self):
+        self._runner = web.AppRunner(self.server)
+        await self._runner.setup()
+        self._site = web.TCPSite(self._runner, "0.0.0.0", self.port)
+        await self._site.start()
 
-    def run(self, queue: Optional[mp.Queue] = None):
+        self.port = self._site._server.sockets[0].getsockname()[1]
+        logger.debug(f"Server running at localhost:{self.port}/")
 
-        # Update the queue
-        self.queue = queue
+    async def hello(self, request):
+        return web.Response(text="Hello World!")
 
-        # Run the app
-        app.run()
+    async def shutdown(self, request):
+        self.c.closeApp.emit()
+        return web.Response(text="Shutting down")
+
+    def exec_(self):
+        super().exec_()
+        self._thread.stop()
+
+class Communicate(QtCore.QObject):
+    closeApp = QtCore.pyqtSignal()
+
+class MyWidget(gl.GLViewWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.setLayout(self.mainLayout)
+
+        self.scatterItem = gl.GLScatterPlotItem(pos=np.empty((0, 3)), size=5, color=(1, 0, 0, 1))
+
+        self.addItem(self.scatterItem)
+
+    def setData(self, points, colors):
+        self.scatterItem.setData(pos=points, color=colors)
+
+    def onNewData(self):
+        # points = np.random.normal(size=(numPoints, 3))
+        points = np.random.uniform(low=0, high=1, size=(N,3))
+        colors = np.random.uniform(low=0, high=1, size=(N,4))
+        self.setData(points, colors)
 
 
 class TrajectoryDrawer:
@@ -71,12 +111,11 @@ class TrajectoryDrawer:
     def __init__(self):
 
         # Create the app
-        self.vispy_app = VispyApp()
-        self.queue = mp.Queue()
+        self.app =QtApp()
 
         # Start the VisPy application process
-        self.vispy_proc = mp.Process(target=self.vispy_app.run, args=(self.queue,))
-        self.vispy_proc.start()
+        self.app_proc = mp.Process(target=self.app.exec_)
+        self.app_proc.start()
 
     def __del__(self):
-        self.vispy_proc.join()
+        self.app_proc.join()

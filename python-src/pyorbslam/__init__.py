@@ -1,5 +1,5 @@
 from .__logger import setup
-from .trajectory_drawer import TrajectoryDrawer, VispyApp
+from .trajectory_drawer import TrajectoryDrawer, QtApp
 from .state import State
 from .sensor import Sensor
 from . import utils
@@ -13,7 +13,7 @@ __all__ = [
     'State',
     'Sensor',
     'TrajectoryDrawer',
-    'VispyApp',
+    'QtApp',
     'utils',
     'MonoSLAM',
     'MonoIMUSLAM',

@@ -19,9 +19,9 @@ def example_trajectory():
 
     return data
 
-def test_vispy_app():
-    app = pyorbslam.VispyApp()
-    app.run()
+def test_qt_app():
+    app = pyorbslam.QtApp()
+    app.exec_()
 
 def test_plot_trajectory(example_trajectory):
     
