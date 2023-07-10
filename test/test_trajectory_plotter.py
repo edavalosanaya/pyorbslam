@@ -23,12 +23,13 @@ def test_qt_app():
     app = pyorbslam.TDApp()
     app.run()
 
-def test_plot_trajectory(example_trajectory):
+def test_start_and_stop_app():
     
     drawer = pyorbslam.TrajectoryDrawer()
-    time.sleep(3)
-    drawer.shutdown()
-    # logger.debug(f"Trajectory: {example_trajectory}")
+    time.sleep(2)
 
-    # for pose in example_trajectory:
-    #     drawer.plot_trajectory(pose)
+def test_plot_trajectory(example_trajectory):
+    drawer = pyorbslam.TrajectoryDrawer()
+
+    for pose in example_trajectory:
+        drawer.plot_trajectory(pose)

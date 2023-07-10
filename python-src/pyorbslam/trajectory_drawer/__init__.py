@@ -4,5 +4,6 @@ from .trajectory_drawer import TrajectoryDrawer, TDApp
 
 __all__ = [
     'TrajectoryDrawer',
-    'TDApp'
+    'TDApp',
+    'TDClient'
 ]
