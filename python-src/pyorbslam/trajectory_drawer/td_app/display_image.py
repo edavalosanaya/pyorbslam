@@ -26,7 +26,7 @@ class DisplayImage(pg.PlotWidget):
         self.image_item = pg.ImageItem()
 
         # Generate a random image (512x512)
-        image_data = np.random.randint(0, 255, size=(512, 512, 3), dtype=np.uint8)
+        image_data = np.zeros((512,512,3), dtype=np.uint8)
 
         # Set the image data
         self.image_item.setImage(image_data)

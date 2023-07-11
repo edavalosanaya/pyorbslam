@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 import pyorbslam
 
-from .conftest import TEST_DIR
+from .conftest import TEST_DIR, EUROC_TEST_DATASET
 
 logger = logging.getLogger("pyorbslam")
 
@@ -50,6 +50,7 @@ def test_plot_trajectory(example_trajectory):
     for pose in example_trajectory:
         drawer.plot_trajectory(pose)
         time.sleep(0.05)
+        # time.sleep(0.5)
 
     drawer.stay()
 

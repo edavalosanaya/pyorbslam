@@ -3,10 +3,13 @@ from typing import Dict, Any, Literal
 
 import numpy as np
 import pyqtgraph.opengl as gl
+from PyQt5.QtGui import QColor
+from dataclasses import asdict
 
 logger = logging.getLogger('pyorbslam')
 
 from ..data_chunk import DataChunk
+from ..data_container import MeshContainer
 
 class Display3D(gl.GLViewWidget):
 
@@ -20,11 +23,13 @@ class Display3D(gl.GLViewWidget):
 
         # Map for creating empty elements
         self.item_create_map = {
-            'line': self.create_line
+            'line': self.create_line,
+            'mesh': self.create_mesh
         }
 
         self.item_update_map = {
-            'line': self.update_line
+            'line': self.update_line,
+            'mesh': self.update_mesh
         }
         
         # Changing the defaults
@@ -35,13 +40,21 @@ class Display3D(gl.GLViewWidget):
         self.addItem(bottom_axis)
         self.visuals['axis'] = bottom_axis
 
+        # Adding a grid
+        grid = gl.GLGridItem()
+        grid.scale(2,2,1)
+        self.addItem(grid)
+       
+        # Other configuration
+        self.setCameraPosition(distance=1)
+
     def __str__(self):
         return "<Display3D>"
 
     def __repr__(self):
         return str(self)
 
-    def create_visual(self, name: str, vtype: Literal['line']):
+    def create_visual(self, name: str, vtype: Literal['line', 'mesh']):
         
         # Create the item
         item = self.item_create_map[vtype]()
@@ -74,3 +87,20 @@ class Display3D(gl.GLViewWidget):
 
     def update_line(self, line, data_chunk: DataChunk):
         line.setData(pos=data_chunk.data)
+
+    def create_mesh(self):
+        return gl.GLMeshItem(smooth=False)
+
+    def update_mesh(self, mesh, data_chunk: DataChunk):
+        mesh_cont: MeshContainer = data_chunk.data
+
+        # Define the vertices and faces of the mesh
+        mesh_data = gl.MeshData(vertexes=mesh_cont.mesh.vertices, faces=mesh_cont.mesh.faces)
+        logger.debug(f"{self}: Mesh color: {mesh_cont.color}")
+        mesh.setMeshData(
+            meshdata=mesh_data,
+            edgeColor=mesh_cont.color,
+            drawFaces=mesh_cont.drawFaces, 
+            drawEdges=mesh_cont.drawEdges
+        )
+        mesh.meshDataChanged()

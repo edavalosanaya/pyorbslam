@@ -31,7 +31,6 @@ class AppWindow(gl.GLViewWidget):
         
         # Setup the widgets
         self.display3d = Display3D()
-        self.display3d.setCameraPosition(distance=40)
         self.display_image = DisplayImage()
 
         self.mainLayout = QtWidgets.QHBoxLayout()
@@ -40,7 +39,7 @@ class AppWindow(gl.GLViewWidget):
         self.mainLayout.addWidget(self.display3d)
         self.mainLayout.addWidget(self.display_image)
 
-        self.mainLayout.setStretchFactor(self.display3d, 1)
+        self.mainLayout.setStretchFactor(self.display3d, 2)
         self.mainLayout.setStretchFactor(self.display_image, 1)
 
         # Setup the server
@@ -71,7 +70,7 @@ class TDApp:
         # Create the app
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = AppWindow(self.port)
-        self.window.resize(1280, 720)
+        self.window.resize(1500, 900)
         self.window.setWindowTitle("Lidar points")
         self.window.raise_()
         self.window.show()
