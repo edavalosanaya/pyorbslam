@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 import zmq
 
 from ..data_chunk import DataChunk
-from ..utils import deserialize
+from ..utils import deserialize, deserialize_image
 from .comm_bus import CommBus
 
 logger = logging.getLogger("pyorbslam")
@@ -67,4 +67,8 @@ class ThreadedZmqPoller(QtCore.QThread):
                 data_chunk: DataChunk = deserialize(data_bytes)
 
                 # Process the incoming data
-                self.cbus.dataUpdate.emit(data_chunk)
+                if data_chunk.vtype in ['line']:
+                    self.cbus.dataUpdate.emit(data_chunk)
+                elif data_chunk.vtype == 'image':
+                    data_chunk.data = deserialize_image(data_chunk.data)
+                    self.cbus.imageUpdate.emit(data_chunk)

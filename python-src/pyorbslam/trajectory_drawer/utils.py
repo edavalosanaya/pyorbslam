@@ -1,6 +1,8 @@
 import logging
 import pickle
 
+import numpy as np
+import simplejpeg
 import netifaces as ni
 import blosc
 
@@ -25,3 +27,9 @@ def serialize(data):
 
 def deserialize(data_bytes):
     return pickle.loads(blosc.decompress(data_bytes))
+
+def serialize_image(image: np.ndarray):
+    return simplejpeg.encode_jpeg(np.ascontiguousarray(image))
+
+def deserialize_image(image_bytes: bytes):
+    return simplejpeg.decode_jpeg(image_bytes)

@@ -45,6 +45,9 @@ class TrajectoryDrawer:
         else:
             self.client.update_visual('trajectory_line', 'line', self.trajectory_line)
 
+    def plot_image(self, image: np.ndarray):
+        self.client.send_image(image)
+
     def plot_pointcloud(self):
         ...
 

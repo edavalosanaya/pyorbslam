@@ -1,70 +1,34 @@
-
-from PyQt5 import QtCore, QtWidgets
-import pyqtgraph.opengl as gl
+import pyqtgraph as pg
+from PyQt5.QtWidgets import QApplication, QMainWindow
 import numpy as np
 import sys
 
-N = 52000
-
-
-class Worker(QtCore.QObject):
-    dataUpdated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
-
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-
-    def generateData(self):
-        points = np.random.uniform(low=0, high=1, size=(N, 3))
-        colors = np.random.uniform(low=0, high=1, size=(N, 4))
-        self.dataUpdated.emit(points, colors)
-
-
-class MyWidget(gl.GLViewWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-
-        self.mainLayout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.mainLayout)
-
-        self.scatterItem = gl.GLScatterPlotItem(pos=np.empty((0, 3)), size=5, color=(1, 0, 0, 1))
-        self.addItem(self.scatterItem)
-
-    def setData(self, points, colors):
-        self.scatterItem.setData(pos=points, color=colors)
-
-
-class App(QtCore.QObject):
-    def __init__(self, args):
+class MainWindow(QMainWindow):
+    def __init__(self):
         super().__init__()
 
-        self.app = QtWidgets.QApplication(args)
-        self.worker = Worker()
-        self.workerThread = QtCore.QThread()
+        # Create an ImageItem
+        image_item = pg.ImageItem()
 
-        self.win = MyWidget()
-        self.win.show()
-        self.win.setWindowTitle("Lidar points")
-        self.win.setCameraPosition(distance=40)
+        # Generate a random image (512x512)
+        image_data = np.random.randint(0, 255, size=(512, 512), dtype=np.uint8)
 
-        self.worker.moveToThread(self.workerThread)
-        self.worker.dataUpdated.connect(self.updateData)
+        # Set the image data
+        image_item.setImage(image_data)
 
-        self.workerThread.started.connect(self.worker.generateData)
-        self.workerThread.start()
+        # Create a PlotWidget and add the ImageItem
+        plot_widget = pg.PlotWidget()
+        plot_widget.addItem(image_item)
 
-    @QtCore.pyqtSlot(np.ndarray, np.ndarray)
-    def updateData(self, points, colors):
-        self.win.setData(points, colors)
+        # Set the central widget of the main window
+        self.setCentralWidget(plot_widget)
 
-    def exec(self):
-        sys.exit(self.app.exec_())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
 
+    # Create the main window
+    mainWindow = MainWindow()
+    mainWindow.show()
 
-def main():
-    app = App([])
-
-    app.exec()
-
-
-if __name__ == "__main__":
-    main()
+    # Start the application event loop
+    sys.exit(app.exec_())

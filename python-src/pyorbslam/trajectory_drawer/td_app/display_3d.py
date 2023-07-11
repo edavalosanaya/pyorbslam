@@ -2,8 +2,6 @@ import logging
 from typing import Dict, Any, Literal
 
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtGui import QColor
 import pyqtgraph.opengl as gl
 
 logger = logging.getLogger('pyorbslam')
@@ -16,11 +14,6 @@ class Display3D(gl.GLViewWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-
-        # Adding widgets
-        self.mainLayout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.mainLayout)
-        self.setCameraPosition(distance=10)
 
         # Container
         self.visuals = {}

@@ -2,11 +2,12 @@ import logging
 import time
 from typing import Literal, Any, Dict
 
+import numpy as np
 import zmq
 import requests
 
 from .data_chunk import DataChunk
-from .utils import get_ip_address, serialize
+from .utils import get_ip_address, serialize, serialize_image
 
 logger = logging.getLogger("pyorbslam")
 
@@ -85,6 +86,11 @@ class TDClient:
 
         if response.status_code != requests.status_codes.codes.ok:
             logger.error(f"{self}: Failed to delete visual: {name}")
+
+    def send_image(self, image: np.ndarray):
+    
+        compressed_image = serialize_image(image)
+        self._zmq_socket.send(serialize(DataChunk('image', 'image', compressed_image)))
 
     def shutdown(self):
         response = requests.get(f"{self.url}/shutdown", timeout=0.1)
