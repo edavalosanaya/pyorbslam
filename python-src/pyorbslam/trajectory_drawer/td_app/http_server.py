@@ -4,18 +4,16 @@ from aiohttp import web
 
 from ..async_loop_thread import AsyncLoopThread
 from .comm_bus import CommBus
-from .display_3d import Display3D
 
 logger = logging.getLogger('pyorbslam')
 
 class HttpServer:
 
-    def __init__(self, port: int, cbus: CommBus, window: Display3D):
+    def __init__(self, port: int, cbus: CommBus):
 
         # Saving input parameters
         self.port = port
         self.cbus = cbus
-        self.window = window
 
         # Creating app
         self.app = web.Application()
@@ -63,24 +61,21 @@ class HttpServer:
         return web.HTTPOk()
 
     async def config_zeromq(self, request):
-        
         # Obtain information, json={'ip': self._client_host, 'port': self._zmq_port}
         data = await request.json()
         self.cbus.zeromqSub.emit(str(data['ip']), int(data['port']))
         return web.HTTPOk()
 
     async def create_visual(self, request):
-
         # Obtain information, json={'name': name, 'vtype': vtype}
         data = await request.json()
-        self.window.create_visual(data['name'], data['vtype'])
+        self.cbus.visualCreate.emit(data['name'], data['vtype'])
         return web.HTTPOk()
 
     async def delete_visual(self, request):
-
         # Obtain information, json={'name': name}
         data = await request.json()
-        self.window.delete_visual(data['name'])
+        self.cbus.visualDelete.emit(data['name'])
         return web.HTTPOk()
 
     def stop(self):

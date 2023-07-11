@@ -35,11 +35,8 @@ def test_start_and_stop_app():
 def test_plot_line(example_trajectory):
     drawer = pyorbslam.TrajectoryDrawer()
 
-    line = np.array([
-        [0,0,0],
-        [0.5, 0.3, 0.1],
-        [1,1,1]
-    ])
+    N = 10
+    line = np.random.uniform(low=0, high=1, size=(N, 3))
     drawer.plot_path(line)
 
     drawer.stay()
@@ -50,5 +47,6 @@ def test_plot_trajectory(example_trajectory):
 
     for pose in example_trajectory:
         drawer.plot_trajectory(pose)
+        time.sleep(0.05)
 
     drawer.stay()

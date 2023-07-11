@@ -38,7 +38,7 @@ class TrajectoryDrawer:
 
         # Extract the information here
         camera_center = pose[0:3, 3].reshape((1,3))
-        self.trajectory_line = np.concatenate((self.trajectory_line, camera_center))[-30:]
+        self.trajectory_line = np.concatenate((self.trajectory_line, camera_center))
         
         if not 'trajectory_line' in self.client.visuals:
             self.client.create_visual('trajectory_line', 'line', self.trajectory_line)

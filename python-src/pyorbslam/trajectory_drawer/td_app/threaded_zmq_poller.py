@@ -1,30 +1,27 @@
-import threading
 import logging
 from typing import List
 
+from PyQt5 import QtCore
 import zmq
 
 from ..data_chunk import DataChunk
 from ..utils import deserialize
 from .comm_bus import CommBus
-from .display_3d import Display3D
 
 logger = logging.getLogger("pyorbslam")
 
-class ThreadedZmqPoller():
+class ThreadedZmqPoller(QtCore.QThread):
     
-    def __init__(self, comm_bus: CommBus, window: Display3D):
+    def __init__(self, comm_bus: CommBus):
+        super().__init__()
 
         # Save input parameters
         self.cbus = comm_bus
-        self.window = window
 
         # Create a poller
         self.running = True
         self.sub_poller = zmq.Poller()
         self.subs: List = []
-        self.poll_thread = threading.Thread(target=self.poll_inputs)
-        self.poll_thread.start()
 
         # Bind
         self.cbus.zeromqSub.connect(self.add_sub)
@@ -47,9 +44,8 @@ class ThreadedZmqPoller():
 
     def shutdown(self):
         self.running = False
-        self.poll_thread.join()
 
-    def poll_inputs(self):
+    def run(self):
 
         logger.debug(f"{self}: Polling thread running")
 
@@ -60,6 +56,7 @@ class ThreadedZmqPoller():
         
             # Empty if no events
             if len(events) == 0:
+                # self.msleep(10)
                 continue
 
             # Else, update values
@@ -67,7 +64,7 @@ class ThreadedZmqPoller():
 
                 # Update
                 data_bytes = s.recv()
-                data: DataChunk = deserialize(data_bytes)
+                data_chunk: DataChunk = deserialize(data_bytes)
 
                 # Process the incoming data
-                # self.window.setData(data)
+                self.cbus.dataUpdate.emit(data_chunk)

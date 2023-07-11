@@ -42,13 +42,17 @@ class TDApp:
         self.window.raise_()
         
         # Supporting the shutdown communication
+        self.cbus.dataUpdate.connect(self.window.update_visual)
+        self.cbus.visualCreate.connect(self.window.create_visual)
+        self.cbus.visualDelete.connect(self.window.delete_visual)
         self.cbus.closeApp.connect(self.window.close)
 
         # Setup ZeroMQ SUB
-        self.zmq_poller = ThreadedZmqPoller(self.cbus, self.window)
+        self.zmq_poller = ThreadedZmqPoller(self.cbus)
+        self.zmq_poller.start()
          
         # Setup the server
-        self.server = HttpServer(self.port, self.cbus, self.window)
+        self.server = HttpServer(self.port, self.cbus)
        
         # Run
         self.app.exec_()
