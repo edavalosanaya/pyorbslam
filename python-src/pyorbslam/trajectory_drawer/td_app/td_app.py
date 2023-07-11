@@ -54,6 +54,7 @@ class AppWindow(gl.GLViewWidget):
         self.cbus.dataUpdate.connect(self.display3d.update_visual)
         self.cbus.visualCreate.connect(self.display3d.create_visual)
         self.cbus.visualDelete.connect(self.display3d.delete_visual)
+        self.cbus.imageUpdate.connect(self.display_image.update_image)
         self.cbus.closeApp.connect(self.closeEvent)
         self.cbus.closeApp.connect(self.server.stop) 
 

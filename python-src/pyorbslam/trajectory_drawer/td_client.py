@@ -91,6 +91,7 @@ class TDClient:
     
         compressed_image = serialize_image(image)
         self._zmq_socket.send(serialize(DataChunk('image', 'image', compressed_image)))
+        logger.debug(f"{self}: Sent image via ZeroMQ")
 
     def shutdown(self):
         response = requests.get(f"{self.url}/shutdown", timeout=0.1)

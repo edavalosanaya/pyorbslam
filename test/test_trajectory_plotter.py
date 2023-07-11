@@ -2,6 +2,8 @@ import time
 import pickle
 import logging
 
+import imutils
+import cv2
 import numpy as np
 import pytest
 import pyorbslam
@@ -50,3 +52,23 @@ def test_plot_trajectory(example_trajectory):
         time.sleep(0.05)
 
     drawer.stay()
+
+
+def test_image_streaming():
+    
+    test_video = TEST_DIR/'data'/'scenevideo.mp4'
+    assert test_video.exists()
+
+    cap = cv2.VideoCapture(str(test_video), 0)
+    drawer = pyorbslam.TrajectoryDrawer()
+    
+    # for i in range(300):
+    i = 0
+    while True:
+
+        ret, frame = cap.read()
+        logger.debug(f"Frame ID: {i}")
+        drawer.plot_image(imutils.resize(frame, width=500))
+        i += 1
+        time.sleep(1/40)
+        # time.sleep(0.5)
