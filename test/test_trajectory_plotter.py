@@ -37,7 +37,7 @@ def test_start_and_stop_app():
 def test_plot_line(example_trajectory):
     drawer = pyorbslam.TrajectoryDrawer()
 
-    N = 10
+    N = 100
     line = np.random.uniform(low=0, high=1, size=(N, 3))
     drawer.plot_path(line)
 

@@ -55,10 +55,11 @@ def test_running_mono_slam_on_tobii(tobii_slam):
     assert test_video.exists()
 
     cap = cv2.VideoCapture(str(test_video), 0)
-    drawer = pyorbslam.TrajectoryDrawer(drawpointcloud=False)
+    drawer = pyorbslam.TrajectoryDrawer()
 
     timestamp = 0
     fps = 1/24
+    i = 0
 
     # for i in range(300):
     while True:
@@ -66,18 +67,21 @@ def test_running_mono_slam_on_tobii(tobii_slam):
         tic = time.time()
         ret, frame = cap.read()
 
-        state = tobii_slam.process(frame, timestamp)
         timestamp += fps
 
-        if state == pyorbslam.State.OK:
-            pose = tobii_slam.get_pose_to_target()
-            # drawer.plot_trajectory(pose)
-            # logger.debug(f"pose: {pose}")
+        if i % 2 == 0: 
+            state = tobii_slam.process(frame, timestamp)
+
+            if state == pyorbslam.State.OK:
+                pose = tobii_slam.get_pose_to_target()
+                drawer.plot_trajectory(pose)
+                # logger.debug(f"pose: {pose}")
 
         toc = time.time()
-        cv2.imshow('frame', imutils.resize(frame, width=500))
-        cv2.waitKey(1)
+        i += 1
+        drawer.plot_image(imutils.resize(frame, width=500))
+        # cv2.imshow('frame', imutils.resize(frame, width=500))
+        # cv2.waitKey(1)
        
         # import pdb; pdb.set_trace()
         logger.debug(f"{tobii_slam.get_state()} - {(1/(toc - tic)):.2f}")
-    
