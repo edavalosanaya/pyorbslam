@@ -96,7 +96,6 @@ class Display3D(gl.GLViewWidget):
 
         # Define the vertices and faces of the mesh
         mesh_data = gl.MeshData(vertexes=mesh_cont.mesh.vertices, faces=mesh_cont.mesh.faces)
-        logger.debug(f"{self}: Mesh color: {mesh_cont.color}")
         mesh.setMeshData(
             meshdata=mesh_data,
             edgeColor=mesh_cont.color,

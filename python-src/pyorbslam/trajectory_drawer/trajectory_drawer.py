@@ -50,6 +50,16 @@ class TrajectoryDrawer:
             [4,3,2]
         ])
 
+    def correct_pose(self, pose: np.ndarray):
+        rt = np.array([
+            [1, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, -1, 0, 0],
+            [0, 0, 0, 1]
+        ])
+
+        return np.matmul(rt, pose)
+
     def plot_path(self, line: np.ndarray):
         
         if not 'path' in self.client.visuals:
@@ -58,6 +68,9 @@ class TrajectoryDrawer:
             self.client.update_visual('path', 'line', line)
 
     def plot_trajectory(self, pose: np.ndarray):
+
+        # Apply a correct transformation
+        pose = self.correct_pose(pose)
 
         # Extract the information here
         camera_center = pose[0:3, 3].reshape((1,3))
