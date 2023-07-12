@@ -4,7 +4,7 @@ from typing import Literal, Any, Dict
 import numpy as np
 import requests
 
-from .threaded_publisher import ThreadedPublisher
+from .publisher import Publisher
 from .data_chunk import DataChunk
 
 logger = logging.getLogger("pyorbslam")
@@ -23,7 +23,7 @@ class TDClient:
         self.visuals = {}
 
         # Create publisher
-        self.publisher = ThreadedPublisher(self.url)
+        self.publisher = Publisher(self.url)
 
     def __str__(self):
         return "<TDClient>"

@@ -61,7 +61,6 @@ class AppWindow(gl.GLViewWidget):
 
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
-        logger.debug(f"{self}: {event.key()}")
         if event.key() == QtCore.Qt.Key_Space:
             self.cbus.toggleCamera.emit()
 

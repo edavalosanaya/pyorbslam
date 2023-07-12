@@ -93,8 +93,8 @@ def test_trajectory_and_image():
     # )
     monitor_pose = np.array([
         [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 0.147],
-        [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, -.4],
-        [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 3],
+        [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, -.1],
+        [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 1],
         [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
     )
 
@@ -110,7 +110,7 @@ def test_trajectory_and_image():
 
     # Load 3D model
     monitor: trimesh.Trimesh = trimesh.load_mesh(str(MONITOR_PLY))
-    monitor = monitor.apply_scale(0.05)
+    monitor = monitor.apply_scale(0.01)
     # monitor_pose = np.load(str(MONITOR_POSE))
     monitor = monitor.apply_transform(monitor_pose)
     monitor = monitor.apply_transform(rt)
@@ -129,11 +129,10 @@ def test_trajectory_and_image():
         array = array.reshape((4, 4))
         return array
 
-    # for i in range(500):
     for j in range(len(pose_data)):
 
         # Get the data
-        ret, frame = cap.read()
+        _, frame = cap.read()
         pose = string_to_numpy(pose_data.iloc[i].pose)
 
         # Show
@@ -145,4 +144,4 @@ def test_trajectory_and_image():
         
         # Update
         i += 1
-        logger.debug(f"i: {i}") # 2,500 is stable!
+        # logger.debug(f"i: {i}") # 2,500 is stable!

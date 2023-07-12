@@ -33,8 +33,7 @@ class Display3D(gl.GLViewWidget):
         }
 
         # Flag for camera
-        self.camera_flag: Literal['off-body', 'fov'] = 'off-body'
-        self.off_body_camera_data = {'params': None, 'position': None}
+        self.follow_trajectory = False
         self.camera_pose = np.empty((4,4))
         
         # Changing the defaults
@@ -64,32 +63,8 @@ class Display3D(gl.GLViewWidget):
     ####################################################################################
   
     def toggle_camera(self):
-        # cameraParams: {
-        #     'rotation': PyQt5.QtGui.QQuaternion(1.0, 0.0, 0.0, 0.0), 
-        #     'elevation': 30, 
-        #     'fov': 60, 
-        #     'distance': 1, 
-        #     'center': PyQt5.QtGui.QVector3D(0.0, 0.0, 0.0), 
-        #     'azimuth': 45
-        # }
-        # cameraPosition: PyQt5.QtGui.QVector3D(0.6123724579811096, 0.6123724579811096, 0.5)
-        
-        # First, it's only possible if there is a mesh called fov
-        if self.camera_flag == 'off-body': # off-body -> fov
-            # Save
-            self.off_body_camera_data['params'] = self.cameraParams()
-            self.off_body_camera_data['position'] = self.cameraPosition()
+        self.follow_trajectory = not self.follow_trajectory
 
-            # Change
-            camera_center = self.camera_pose[0:3, 3].reshape((1,3))
-            self.setCameraPosition(QVector3D(camera_center[0], camera_center[1], camera_center[2]))
-        
-        else: # fov -> off-body
-            # Load
-            self.setCameraParams(**self.off_body_camera_data['params'])
-            self.setCameraPosition(**self.off_body_camera_data['position'])
-
-        # logger.debug(f"{self}: {self.cameraParams()} - {self.cameraPosition()}")
 
     ####################################################################################
     ## Visual Networking
@@ -110,6 +85,12 @@ class Display3D(gl.GLViewWidget):
         # logger.debug(f"{self}::setData: {data_chunk.name} - {data_chunk.vtype}")
         update_fun = self.item_update_map[data_chunk.vtype]
         update_fun(self.visuals[data_chunk.name], data_chunk)
+
+
+        # Change
+        if data_chunk.name == 'trajectory_line' and self.follow_trajectory:
+            camera_center = data_chunk.data[-1]
+            self.setCameraPosition(QVector3D(camera_center[0], camera_center[1], camera_center[2]))
 
     def delete_visual(self, name: str):
 

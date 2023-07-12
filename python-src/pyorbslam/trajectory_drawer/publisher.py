@@ -12,7 +12,7 @@ from .utils import get_ip_address, serialize, serialize_image
 
 logger = logging.getLogger("pyorbslam")
 
-class ThreadedPublisher:
+class Publisher:
 
     def __init__(self, td_app_url: str):
 
