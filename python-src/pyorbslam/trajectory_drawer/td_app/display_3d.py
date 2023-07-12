@@ -9,7 +9,7 @@ from dataclasses import asdict
 logger = logging.getLogger('pyorbslam')
 
 from ..data_chunk import DataChunk
-from ..data_container import MeshContainer
+from ..data_container import MeshContainer, PointCloudContainer
 
 class Display3D(gl.GLViewWidget):
 
@@ -24,12 +24,14 @@ class Display3D(gl.GLViewWidget):
         # Map for creating empty elements
         self.item_create_map = {
             'line': self.create_line,
-            'mesh': self.create_mesh
+            'mesh': self.create_mesh,
+            'point cloud': self.create_point_cloud
         }
 
         self.item_update_map = {
             'line': self.update_line,
-            'mesh': self.update_mesh
+            'mesh': self.update_mesh,
+            'point cloud': self.update_point_cloud
         }
 
         # Flag for camera
@@ -81,12 +83,13 @@ class Display3D(gl.GLViewWidget):
         logger.debug(f"{self}: Created visual: {name}")
 
     def update_visual(self, data_chunk: DataChunk):
-        # logger.debug(f"{self}::setData: {data_chunk.name} - {data_chunk.vtype}")
+
+        # Update data
+        logger.debug(f"{self}: Updating data for {data_chunk.data}")
         update_fun = self.item_update_map[data_chunk.vtype]
         update_fun(self.visuals[data_chunk.name], data_chunk)
 
-
-        # Change
+        # Change if new trajectory is obtain and we are following the trajectory
         if data_chunk.name == 'trajectory_line' and self.follow_trajectory:
             camera_center = data_chunk.data[-1]
             self.setCameraPosition(pos=QVector3D(camera_center[0], camera_center[1], camera_center[2]), distance=0.01)
@@ -124,3 +127,16 @@ class Display3D(gl.GLViewWidget):
             drawEdges=mesh_cont.drawEdges
         )
         mesh.meshDataChanged()
+
+    def create_point_cloud(self):
+        return gl.GLScatterPlotItem(pos=np.empty((0,3)))
+
+    def update_point_cloud(self, scatter, data_chunk: DataChunk):
+        pc_container: PointCloudContainer = data_chunk.data
+
+        # Update
+        scatter.setData(
+            pos=pc_container.pts,
+            color=pc_container.colors,
+            size=pc_container.size
+        )

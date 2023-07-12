@@ -35,7 +35,7 @@ class TDClient:
     def url(self):
         return f"http://{self.ip}:{self.port}"
 
-    def create_visual(self, name: str, vtype: Literal['line', 'mesh'], data: Any):
+    def create_visual(self, name: str, vtype: Literal['line', 'mesh', 'point cloud'], data: Any):
 
         # Send information to create visualization via HTTP
         response = requests.post(f"{self.url}/visuals/create", json={'name': name, 'vtype': vtype})
@@ -53,15 +53,13 @@ class TDClient:
         else:
             logger.debug(f"{self}: Failed to create visual: {name}")
 
-    def update_visual(self, name: str, vtype: Literal['line', 'mesh'], data: Any):
+    def update_visual(self, name: str, vtype: Literal['line', 'mesh', 'point cloud'], data: Any):
 
         if name not in self.visuals:
             logger.warning(f"{self}: Failed to update visual (not created yet): {name}")
             return None
 
         self.publisher.send(DataChunk(name, vtype, data))
-        # logger.debug(f"{self}: Sent visual ({name}) via ZeroMQ")
-             
 
     def delete_visual(self, name: str):
         # Send information to create visualization via HTTP

@@ -81,6 +81,8 @@ def test_running_mono_slam_on_tobii(tobii_slam):
                 pose = tobii_slam.get_pose_to_target()
                 drawer.plot_trajectory(pose)
 
+                import pdb; pdb.set_trace()
+
         # Save the information
         # pose_df = pd.Series({'i': i, 'pose': pose}).to_frame().T
         # pose_df.to_csv(

@@ -110,7 +110,7 @@ class ASLAM:
     def get_pose_from_target(self):
         """Get the pose from the current frame T to the reference one 0."""
         if self.get_state() == State.OK:
-            return np.linalg.inv(self.slam.get_pose_to_target())
+            return np.linalg.inv(self.pose_array[-1])
         return None
     
     def get_point_cloud(self):
@@ -152,33 +152,33 @@ class ASLAM:
                 depth[point[1], point[0]] = cp[2]
         return depth
 
-    # def _get_2d_point(self):
-    #     """This private method is used to compute the transormation between the absolute point to the image point
+    def _get_2d_point(self):
+        """This private method is used to compute the transormation between the absolute point to the image point
 
-    #     Return:
-    #         a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
+        Return:
+            a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
 
-    #     """
-    #     points2D = []
-    #     points = self.get_abs_cloud()
-    #     camera_matrix = self.slam.get_camera_matrix()
-    #     pose = self.get_pose_from_target()
-    #     for point in points:
-    #         point = np.append(point, [1]).reshape(4, 1)
-    #         camera_points = np.dot(pose, point)
-    #         if camera_points[2] >= 0:
-    #             u = (
-    #                 camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
-    #                 + camera_matrix[0, 2]
-    #             )
-    #             v = (
-    #                 camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
-    #                 + camera_matrix[1, 2]
-    #             )
-    #         if int(v) in range(0, self.camera_height):
-    #             if int(u) in range(0, self.camera_width):
-    #                 points2D.append([camera_points, (int(u), int(v))])
-    #     return points2D
+        """
+        points2D = []
+        points = self.get_abs_cloud()
+        camera_matrix = self.slam.get_camera_matrix()
+        pose = self.get_pose_from_target()
+        for point in points:
+            point = np.append(point, [1]).reshape(4, 1)
+            camera_points = np.dot(pose, point)
+            if camera_points[2] >= 0:
+                u = (
+                    camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
+                    + camera_matrix[0, 2]
+                )
+                v = (
+                    camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
+                    + camera_matrix[1, 2]
+                )
+            if int(v) in range(0, self.camera_height):
+                if int(u) in range(0, self.camera_width):
+                    points2D.append([camera_points, (int(u), int(v))])
+        return points2D
 
     def reset(self):
         self.slam.reset()

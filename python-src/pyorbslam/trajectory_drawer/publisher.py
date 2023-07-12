@@ -40,6 +40,8 @@ class Publisher:
 
         if data_chunk.vtype == 'image':
             data_chunk.data = serialize_image(data_chunk.data)
+        # elif data_chunk.vtype == 'point cloud':
+        #     data_chunk.data = serialize_pc(data_chunk.data)
 
         # Send the data
         self._zmq_socket.send(serialize(data_chunk))

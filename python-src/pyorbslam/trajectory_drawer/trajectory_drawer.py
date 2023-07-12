@@ -1,13 +1,13 @@
 import logging
 import multiprocessing as mp
-from typing import Tuple
+from typing import Tuple, Union
 
 import trimesh
 import numpy as np
 
 from .td_app import TDApp
 from .td_client import TDClient
-from .data_container import MeshContainer
+from .data_container import MeshContainer, PointCloudContainer
 
 logger = logging.getLogger("pyorbslam")
 
@@ -93,7 +93,7 @@ class TrajectoryDrawer:
             drawEdges=True,
             color=(1,0,0,1)
         )
-        if not 'fov' in self.client.visuals:
+        if 'fov' not in self.client.visuals:
             self.client.create_visual('fov', 'mesh', fov_container)
         else:
             self.client.update_visual('fov', 'mesh', fov_container)
@@ -101,14 +101,23 @@ class TrajectoryDrawer:
     def plot_image(self, image: np.ndarray):
         self.client.send_image(image)
 
-    def plot_pointcloud(self):
-        ...
+    def plot_pointcloud(self, name: str, pts: np.ndarray, colors: Union[np.ndarray, Tuple[float, float, float, float]]=(1.0,1.0,1.0,1.0)):
+
+        # Create the container
+        pc_container = PointCloudContainer(
+            pts=pts,
+            colors=colors
+        )
+        if name not in self.client.visuals:
+            self.client.create_visual(name, 'point cloud', pc_container)
+        else:
+            self.client.update_visual(name, 'point cloud', pc_container)
     
     #####################################################################################
     ## 3D Plotting
     #####################################################################################
    
-    def add_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple=(1,0,0,1)):
+    def add_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple[float, float, float, float]=(1.0,0.0,0.0,1.0)):
 
         if name in self.client.visuals:
             logger.warning(f"{self}: Cannot add mesh that is already added: {name}")

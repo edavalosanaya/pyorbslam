@@ -146,4 +146,15 @@ def test_trajectory_and_image():
         except Exception as e:
             logger.error(e)
 
+def test_point_cloud_visualization():
+    
+    drawer = pyorbslam.TrajectoryDrawer()
 
+    N = 100
+    for i in range(10):
+        pts = np.random.uniform(low=0, high=1, size=(N, 3))
+        colors = np.random.uniform(low=0, high=1, size=(N,4))
+        drawer.plot_pointcloud('test', pts, colors)
+        time.sleep(0.5)
+
+    drawer.stay()
