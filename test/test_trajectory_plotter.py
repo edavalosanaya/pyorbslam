@@ -17,6 +17,12 @@ logger = logging.getLogger("pyorbslam")
 EXAMPLE_TRAJECTORY = TEST_DIR / 'data' / 'trajectory.pkl'
 MONITOR_PLY = TEST_DIR / 'assets' / 'monitor.ply'
 MONITOR_POSE = TEST_DIR / 'assets' / 'tobii_2500.npy'
+    
+def string_to_numpy(string):
+    string = string.replace('[', '').replace(']', '').replace('\n', '')
+    array = np.fromstring(string, sep=' ')
+    array = array.reshape((4, 4))
+    return array
 
 @pytest.fixture
 def example_trajectory():
@@ -92,9 +98,9 @@ def test_trajectory_and_image():
     #     [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
     # )
     monitor_pose = np.array([
-        [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 0.147],
-        [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, -.1],
-        [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 1],
+        [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 0.235], #left-right
+        [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, 0.04875], #+1 -> down
+        [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 0.6],
         [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
     )
 
@@ -108,12 +114,16 @@ def test_trajectory_and_image():
     tobii_trajectory_path.exists()
     pose_data = pd.read_csv(str(tobii_trajectory_path))
 
+    # Get the 2500 pose
+    pose_2500 = string_to_numpy(pose_data.iloc[2500].pose)
+
     # Load 3D model
     monitor: trimesh.Trimesh = trimesh.load_mesh(str(MONITOR_PLY))
     monitor = monitor.apply_scale(0.01)
     # monitor_pose = np.load(str(MONITOR_POSE))
     monitor = monitor.apply_transform(monitor_pose)
     monitor = monitor.apply_transform(rt)
+    monitor = monitor.apply_transform(pose_2500)
 
     # Create drawer
     drawer = pyorbslam.TrajectoryDrawer()
@@ -121,17 +131,11 @@ def test_trajectory_and_image():
     # Configure monitor
     drawer.add_mesh('monitor', monitor, color=(0,1,0,1))
 
-    i = 0
+    # i = 2500
+    # i = 0
 
-    def string_to_numpy(string):
-        string = string.replace('[', '').replace(']', '').replace('\n', '')
-        array = np.fromstring(string, sep=' ')
-        array = array.reshape((4, 4))
-        return array
+    for i in range(len(pose_data)):
 
-    for j in range(len(pose_data)):
-
-        # Get the data
         _, frame = cap.read()
         pose = string_to_numpy(pose_data.iloc[i].pose)
 
@@ -141,7 +145,5 @@ def test_trajectory_and_image():
             drawer.plot_image(imutils.resize(frame, width=200))
         except Exception as e:
             logger.error(e)
-        
-        # Update
-        i += 1
-        # logger.debug(f"i: {i}") # 2,500 is stable!
+
+

@@ -65,7 +65,6 @@ class Display3D(gl.GLViewWidget):
     def toggle_camera(self):
         self.follow_trajectory = not self.follow_trajectory
 
-
     ####################################################################################
     ## Visual Networking
     ####################################################################################
@@ -90,7 +89,7 @@ class Display3D(gl.GLViewWidget):
         # Change
         if data_chunk.name == 'trajectory_line' and self.follow_trajectory:
             camera_center = data_chunk.data[-1]
-            self.setCameraPosition(QVector3D(camera_center[0], camera_center[1], camera_center[2]))
+            self.setCameraPosition(pos=QVector3D(camera_center[0], camera_center[1], camera_center[2]), distance=0.01)
 
     def delete_visual(self, name: str):
 
