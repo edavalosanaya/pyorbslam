@@ -1,6 +1,6 @@
 import logging
 import multiprocessing as mp
-from typing import Optional
+from typing import Tuple
 
 import trimesh
 import numpy as np
@@ -50,7 +50,7 @@ class TrajectoryDrawer:
             [4,3,2]
         ])
 
-    def correct_pose(self, pose: np.ndarray):
+    def _correct_pose(self, pose: np.ndarray):
         rt = np.array([
             [1, 0, 0, 0],
             [0, 0, 1, 0],
@@ -59,6 +59,10 @@ class TrajectoryDrawer:
         ])
 
         return np.matmul(rt, pose)
+
+    #####################################################################################
+    ## Trajectory Related Methods
+    #####################################################################################
 
     def plot_path(self, line: np.ndarray):
         
@@ -70,7 +74,7 @@ class TrajectoryDrawer:
     def plot_trajectory(self, pose: np.ndarray):
 
         # Apply a correct transformation
-        pose = self.correct_pose(pose)
+        pose = self._correct_pose(pose)
 
         # Extract the information here
         camera_center = pose[0:3, 3].reshape((1,3))
@@ -99,6 +103,44 @@ class TrajectoryDrawer:
 
     def plot_pointcloud(self):
         ...
+    
+    #####################################################################################
+    ## 3D Plotting
+    #####################################################################################
+   
+    def add_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple=(1,0,0,1)):
+
+        if name in self.client.visuals:
+            logger.warning(f"{self}: Cannot add mesh that is already added: {name}")
+            return
+
+        # Create container
+        mesh_container = MeshContainer(
+            mesh=mesh,
+            drawFaces=drawFaces,
+            drawEdges=drawEdges,
+            color=color
+        )
+        self.client.create_visual(name, 'mesh', mesh_container)
+
+    def update_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple=(1,0,0,1)):
+        
+        if name not in self.client.visuals:
+            logger.warning(f"{self}: Cannot update mesh that hasn't been added: {name}")
+            return
+        
+        # Create container
+        mesh_container = MeshContainer(
+            mesh=mesh,
+            drawFaces=drawFaces,
+            drawEdges=drawEdges,
+            color=color
+        )
+        self.client.update_visual(name, 'mesh', mesh_container)
+
+    #####################################################################################
+    ## Life Cycle
+    #####################################################################################
 
     def stay(self):
         self.app_proc.join()

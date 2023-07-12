@@ -4,7 +4,9 @@ import numpy as np
 import imutils
 import pickle
 import time
+import os
 
+import pandas as pd
 import pytest
 import cv2
 
@@ -26,7 +28,7 @@ def test_mono_slam():
 
 def test_mono_slam_euroc(euroc_slam):
     image_filenames, timestamps = pyorbslam.utils.load_images_EuRoC(EUROC_TEST_DATASET)
-    # drawer = pyorbslam.TrajectoryDrawer()
+    drawer = pyorbslam.TrajectoryDrawer()
 
     for i in range(500):
         
@@ -39,10 +41,9 @@ def test_mono_slam_euroc(euroc_slam):
 
         if state == pyorbslam.State.OK:
             pose = euroc_slam.get_pose_to_target()
-            # drawer.plot_trajectory(pose)
+            drawer.plot_trajectory(pose)
         
-        cv2.imshow('frame', image)
-        cv2.waitKey(1)
+        drawer.plot_image(imutils.resize(image, width=200))
     
     # Save the information
     with open(TEST_DIR/'data'/'trajectory.pkl', 'wb') as f:
@@ -61,13 +62,17 @@ def test_running_mono_slam_on_tobii(tobii_slam):
     fps = 1/24
     i = 0
 
-    # for i in range(300):
+    # tobii_trajectory_path = TEST_DIR / 'data' / 'tobii_trajectory_path.csv'
+    # if tobii_trajectory_path.exists():
+    #     os.remove(tobii_trajectory_path)
+
+    pose = np.empty((4,4))
+
+    # for i in range(500):
     while True:
 
         tic = time.time()
         ret, frame = cap.read()
-
-        timestamp += fps
 
         if i % 2 == 0: 
             state = tobii_slam.process(frame, timestamp)
@@ -75,13 +80,26 @@ def test_running_mono_slam_on_tobii(tobii_slam):
             if state == pyorbslam.State.OK:
                 pose = tobii_slam.get_pose_to_target()
                 drawer.plot_trajectory(pose)
-                # logger.debug(f"pose: {pose}")
+
+        # Save the information
+        # pose_df = pd.Series({'i': i, 'pose': pose}).to_frame().T
+        # pose_df.to_csv(
+        #     str(tobii_trajectory_path),
+        #     mode='a',
+        #     header=not tobii_trajectory_path.exists(),
+        #     index=False
+        # )
 
         toc = time.time()
+
+        # Update
         i += 1
-        drawer.plot_image(imutils.resize(frame, width=500))
-        # cv2.imshow('frame', imutils.resize(frame, width=500))
-        # cv2.waitKey(1)
-       
-        # import pdb; pdb.set_trace()
+        timestamp += fps
+
+        # Show
+        drawer.plot_image(imutils.resize(frame, width=200))
         logger.debug(f"{tobii_slam.get_state()} - {(1/(toc - tic)):.2f}")
+    
+    # Save the information
+    # with open(TEST_DIR/'data'/'tobii_trajectory.pkl', 'wb') as f:
+    #     pickle.dump(tobii_slam.pose_array, f)

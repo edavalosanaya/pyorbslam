@@ -3,7 +3,7 @@ from typing import Dict, Any, Literal
 
 import numpy as np
 import pyqtgraph.opengl as gl
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QVector3D
 from dataclasses import asdict
 
 logger = logging.getLogger('pyorbslam')
@@ -31,6 +31,11 @@ class Display3D(gl.GLViewWidget):
             'line': self.update_line,
             'mesh': self.update_mesh
         }
+
+        # Flag for camera
+        self.camera_flag: Literal['off-body', 'fov'] = 'off-body'
+        self.off_body_camera_data = {'params': None, 'position': None}
+        self.camera_pose = np.empty((4,4))
         
         # Changing the defaults
         # self.setBackgroundColor(QColor(255,255,255))
@@ -53,6 +58,42 @@ class Display3D(gl.GLViewWidget):
 
     def __repr__(self):
         return str(self)
+    
+    ####################################################################################
+    ## Qt Methods
+    ####################################################################################
+  
+    def toggle_camera(self):
+        # cameraParams: {
+        #     'rotation': PyQt5.QtGui.QQuaternion(1.0, 0.0, 0.0, 0.0), 
+        #     'elevation': 30, 
+        #     'fov': 60, 
+        #     'distance': 1, 
+        #     'center': PyQt5.QtGui.QVector3D(0.0, 0.0, 0.0), 
+        #     'azimuth': 45
+        # }
+        # cameraPosition: PyQt5.QtGui.QVector3D(0.6123724579811096, 0.6123724579811096, 0.5)
+        
+        # First, it's only possible if there is a mesh called fov
+        if self.camera_flag == 'off-body': # off-body -> fov
+            # Save
+            self.off_body_camera_data['params'] = self.cameraParams()
+            self.off_body_camera_data['position'] = self.cameraPosition()
+
+            # Change
+            camera_center = self.camera_pose[0:3, 3].reshape((1,3))
+            self.setCameraPosition(QVector3D(camera_center[0], camera_center[1], camera_center[2]))
+        
+        else: # fov -> off-body
+            # Load
+            self.setCameraParams(**self.off_body_camera_data['params'])
+            self.setCameraPosition(**self.off_body_camera_data['position'])
+
+        # logger.debug(f"{self}: {self.cameraParams()} - {self.cameraPosition()}")
+
+    ####################################################################################
+    ## Visual Networking
+    ####################################################################################
 
     def create_visual(self, name: str, vtype: Literal['line', 'mesh']):
         

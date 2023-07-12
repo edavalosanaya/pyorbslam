@@ -3,7 +3,7 @@ import os
 import sys
 import logging
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 import pyqtgraph.opengl as gl
 
 from ..utils import get_ip_address
@@ -53,9 +53,17 @@ class AppWindow(gl.GLViewWidget):
         self.cbus.dataUpdate.connect(self.display3d.update_visual)
         self.cbus.visualCreate.connect(self.display3d.create_visual)
         self.cbus.visualDelete.connect(self.display3d.delete_visual)
+        self.cbus.toggleCamera.connect(self.display3d.toggle_camera)
+
         self.cbus.imageUpdate.connect(self.display_image.update_image)
         self.cbus.closeApp.connect(self.closeEvent)
-        self.cbus.closeApp.connect(self.server.stop) 
+        self.cbus.closeApp.connect(self.server.stop)
+
+    def keyPressEvent(self, event):
+        super().keyPressEvent(event)
+        logger.debug(f"{self}: {event.key()}")
+        if event.key() == QtCore.Qt.Key_Space:
+            self.cbus.toggleCamera.emit()
 
 class TDApp:
 

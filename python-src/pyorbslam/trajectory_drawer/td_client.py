@@ -1,13 +1,11 @@
 import logging
-import time
 from typing import Literal, Any, Dict
 
 import numpy as np
-import zmq
 import requests
 
+from .threaded_publisher import ThreadedPublisher
 from .data_chunk import DataChunk
-from .utils import get_ip_address, serialize, serialize_image
 
 logger = logging.getLogger("pyorbslam")
 
@@ -25,22 +23,7 @@ class TDClient:
         self.visuals = {}
 
         # Create publisher
-        self._client_host = get_ip_address()
-        self._zmq_context = zmq.Context()
-        self._zmq_socket = self._zmq_context.socket(zmq.PUB)
-        self._zmq_port = self._zmq_socket.bind_to_random_port(f"tcp://{self._client_host}")
-        time.sleep(0.5)
-
-        # Inform server to subscribe to my 3D visuals
-        response = requests.post(f"{self.url}/config/zeromq", json={'ip': self._client_host, 'port': self._zmq_port})
-       
-        # Reportin success/failure
-        if response.status_code == requests.status_codes.codes.ok:
-            logger.debug(f"{self}: Successful creating SUB/PUB connection!")
-            time.sleep(1)
-        else:
-            logger.error(f"{self}: Failed to create SUB/PUB connection!")
-
+        self.publisher = ThreadedPublisher(self.url)
 
     def __str__(self):
         return "<TDClient>"
@@ -59,7 +42,7 @@ class TDClient:
 
         if response.status_code == requests.status_codes.codes.ok:
             # Then send the actual data via ZeroMQ
-            self._zmq_socket.send(serialize(DataChunk(name, vtype, data)))
+            self.publisher.send(DataChunk(name, vtype, data))
 
             # Record the creation
             self.visuals[name] = data
@@ -76,8 +59,8 @@ class TDClient:
             logger.warning(f"{self}: Failed to update visual (not created yet): {name}")
             return None
 
-        self._zmq_socket.send(serialize(DataChunk(name, vtype, data)))
-        logger.debug(f"{self}: Sent visual ({name}) via ZeroMQ")
+        self.publisher.send(DataChunk(name, vtype, data))
+        # logger.debug(f"{self}: Sent visual ({name}) via ZeroMQ")
              
 
     def delete_visual(self, name: str):
@@ -88,10 +71,7 @@ class TDClient:
             logger.error(f"{self}: Failed to delete visual: {name}")
 
     def send_image(self, image: np.ndarray):
-    
-        compressed_image = serialize_image(image)
-        self._zmq_socket.send(serialize(DataChunk('image', 'image', compressed_image)))
-        logger.debug(f"{self}: Sent image via ZeroMQ")
+        self.publisher.send(DataChunk('image', 'image', image))
 
     def shutdown(self):
         response = requests.get(f"{self.url}/shutdown", timeout=0.1)

@@ -65,12 +65,12 @@ class ThreadedZmqPoller(QtCore.QThread):
                 # Update
                 data_bytes = s.recv()
                 data_chunk: DataChunk = deserialize(data_bytes)
+                logger.debug(f"{self}: Received {data_chunk.vtype}")
 
                 # Process the incoming data
                 if data_chunk.vtype in ['line', 'mesh']:
                     self.cbus.dataUpdate.emit(data_chunk)
 
                 elif data_chunk.vtype == 'image':
-                    logger.debug(f"{self}: Received an image")
                     data_chunk.data = deserialize_image(data_chunk.data)
                     self.cbus.imageUpdate.emit(data_chunk.data)
