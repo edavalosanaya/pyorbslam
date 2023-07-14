@@ -94,7 +94,7 @@ class Display3D(gl.GLViewWidget):
     def update_visual(self, data_chunk: DataChunk):
 
         # Update data
-        logger.debug(f"{self}: Updating data for {data_chunk.data}")
+        # logger.debug(f"{self}: Updating data for {data_chunk.data}")
         update_fun = self.item_update_map[data_chunk.vtype]
         update_fun(self.visuals[data_chunk.name], data_chunk)
 
