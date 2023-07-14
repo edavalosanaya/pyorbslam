@@ -71,6 +71,17 @@ class TDClient:
     def send_image(self, image: np.ndarray):
         self.publisher.send(DataChunk('image', 'image', image))
 
+    def send_reset(self):
+        
+        # Send information to create visualization via HTTP
+        response = requests.post(f"{self.url}/reset", json={'reset': True})
+
+        if response.status_code != requests.status_codes.codes.ok:
+            logger.error(f"{self}: Failed to reset")
+
+        # Clear the known visuals
+        self.visuals.clear()
+
     def shutdown(self):
         response = requests.get(f"{self.url}/shutdown", timeout=0.1)
 

@@ -25,7 +25,7 @@ class DisplayImage(pg.PlotWidget):
         # Create an ImageItem
         self.image_item = pg.ImageItem()
 
-        # Generate a random image (512x512)
+        # Generate an empty image (512x512)
         image_data = np.zeros((512,512,3), dtype=np.uint8)
 
         # Set the image data
@@ -42,3 +42,9 @@ class DisplayImage(pg.PlotWidget):
         corrected_image = np.rot90(image, k=3)[:,:,::-1]
         self.image_item.clear()
         self.image_item.setImage(corrected_image.astype(np.uint8))
+
+    def reset_display(self):
+        
+        # Generate an empty image (512x512)
+        image_data = np.zeros((512,512,3), dtype=np.uint8)
+        self.image_item.setImage(image_data)

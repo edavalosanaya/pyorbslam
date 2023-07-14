@@ -67,6 +67,15 @@ class Display3D(gl.GLViewWidget):
     def toggle_camera(self):
         self.follow_trajectory = not self.follow_trajectory
 
+    def reset_display(self):
+
+        # For each visual element, delete them
+        for v in self.visuals.values():
+            self.removeItem(v)
+
+        # Clear the visuals list
+        self.visuals.clear()
+
     ####################################################################################
     ## Visual Networking
     ####################################################################################

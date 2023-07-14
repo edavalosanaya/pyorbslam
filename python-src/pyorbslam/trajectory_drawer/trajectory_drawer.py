@@ -112,6 +112,13 @@ class TrajectoryDrawer:
             self.client.create_visual(name, 'point cloud', pc_container)
         else:
             self.client.update_visual(name, 'point cloud', pc_container)
+
+    def reset(self):
+        # Container information
+        self.trajectory_line = np.empty((0,3))
+
+        # Update the server via the client
+        self.client.send_reset()
     
     #####################################################################################
     ## 3D Plotting

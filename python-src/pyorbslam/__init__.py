@@ -5,6 +5,7 @@ from .sensor import Sensor
 from . import utils
 from .slam import MonoSLAM, MonoIMUSLAM, StereoSLAM, StereoIMUSLAM, RgbdSLAM
 from . import orbslam3
+from . import tools
 
 # Setup logging
 setup()
@@ -20,5 +21,6 @@ __all__ = [
     'StereoSLAM',
     'StereoIMUSLAM',
     'RgbdSLAM',
-    'orbslam3'
+    'orbslam3',
+    'tools'
 ]

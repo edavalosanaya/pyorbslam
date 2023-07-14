@@ -67,7 +67,7 @@ class ASLAM:
         self.camera_width = config['Camera.width']
         self.camera_height = config['Camera.height']
 
-    def get_pose_to_target(self, precedent_frame: int = -1) -> Optional[np.ndarray]:
+    def get_pose_to_target(self, precedent_frame: int = -1) -> np.ndarray:
         """Get the pose between a previous frame X in the sequence and the current one T.
 
         The param `precedent_frame` allows to distinguish between different situations:
@@ -92,11 +92,13 @@ class ASLAM:
         if self.slam.get_tracking_state() == orbslam3.TrackingState.OK:
             return np.linalg.inv(self.pose_array[precedent_frame])
 
-        return None
+        return np.empty((4,4))
 
-    def get_abs_cloud(self):
+    def get_abs_cloud(self) -> np.ndarray:
         if self.slam.get_tracking_state() == orbslam3.TrackingState.OK:
             return self.slam.get_tracked_mappoints()
+        else:
+            return np.empty((0,3))
 
     def get_camera_matrix(self):
         return self.slam.get_camera_matrix()
@@ -107,13 +109,13 @@ class ASLAM:
         except KeyError:
             return State.LOST
 
-    def get_pose_from_target(self):
+    def get_pose_from_target(self) -> np.ndarray:
         """Get the pose from the current frame T to the reference one 0."""
         if self.get_state() == State.OK:
             return np.linalg.inv(self.pose_array[-1])
-        return None
+        return np.empty((4,4))
     
-    def get_point_cloud(self):
+    def get_point_cloud(self) -> np.ndarray:
         """Get the point cloud at the current frame form the wiev of the current position .
 
         Return:
@@ -121,64 +123,65 @@ class ASLAM:
 
         """
         if self.get_state() == State.OK:
-            return [cp for (cp, _) in self._get_2d_point()]
-        return None
+            return np.array(self.get_abs_cloud())
+        return np.empty((0,3))
 
-    def get_point_cloud_colored(self):
-        """Get the point cloud at the current frame form the wiev of the current position with the RGB color of the point .
+    # def get_point_cloud_colored(self):
+    #     """Get the point cloud at the current frame form the wiev of the current position with the RGB color of the point .
 
-        Return:
-            an array with the 3D coordinate of the point and the relative RGB color, None if the traking is failed
+    #     Return:
+    #         an array with the 3D coordinate of the point and the relative RGB color, None if the traking is failed
 
-        """
-        if self.get_state() == State.OK:
-            return [
-                [cp, self.image[point[1], point[0]]]
-                for (cp, point) in self._get_2d_point()
-            ]
-        return None
+    #     """
+    #     if self.get_state() == State.OK:
+    #         return [
+    #             [cp, self.image[point[1], point[0]]]
+    #             for (cp, point) in self._get_2d_point()
+    #         ]
+    #     return None
 
-    def get_depth(self):
-        """Get the depth computed in the current image.
+    # def get_depth(self):
+    #     """Get the depth computed in the current image.
 
-        Return:
-            an array of the image shape with depth when it is aviable otherwise -1 , None if the traking is failed
+    #     Return:
+    #         an array of the image shape with depth when it is aviable otherwise -1 , None if the traking is failed
 
-        """
-        depth = None
-        if self.get_state() == State.OK:
-            depth = np.ones((self.camera_height, self.camera_width)) * -1
-            for (cp, point) in self._get_2d_point():
-                depth[point[1], point[0]] = cp[2]
-        return depth
+    #     """
+    #     depth = None
+    #     if self.get_state() == State.OK:
+    #         depth = np.ones((self.camera_height, self.camera_width)) * -1
+    #         for (cp, point) in self._get_2d_point():
+    #             depth[point[1], point[0]] = cp[2]
+    #     return depth
 
-    def _get_2d_point(self):
-        """This private method is used to compute the transormation between the absolute point to the image point
+    # def _get_2d_point(self) -> List[np.ndarray]:
+    #     """This private method is used to compute the transormation between the absolute point to the image point
 
-        Return:
-            a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
+    #     Return:
+    #         a np.ndarray of pairs (camera view, image point) , an empty list if the tracking is failed
 
-        """
-        points2D = []
-        points = self.get_abs_cloud()
-        camera_matrix = self.slam.get_camera_matrix()
-        pose = self.get_pose_from_target()
-        for point in points:
-            point = np.append(point, [1]).reshape(4, 1)
-            camera_points = np.dot(pose, point)
-            if camera_points[2] >= 0:
-                u = (
-                    camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
-                    + camera_matrix[0, 2]
-                )
-                v = (
-                    camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
-                    + camera_matrix[1, 2]
-                )
-            if int(v) in range(0, self.camera_height):
-                if int(u) in range(0, self.camera_width):
-                    points2D.append([camera_points, (int(u), int(v))])
-        return points2D
+    #     """
+    #     points2D = []
+    #     import pdb; pdb.set_trace()
+    #     points = self.get_abs_cloud()
+    #     camera_matrix = self.slam.get_camera_matrix()
+    #     pose = self.get_pose_from_target()
+    #     for point in points:
+    #         point = np.append(point, [1]).reshape(4, 1)
+    #         camera_points = np.dot(pose, point)
+    #         if camera_points[2] >= 0:
+    #             u = (
+    #                 camera_matrix[0, 0] * (camera_points[0] / camera_points[2])
+    #                 + camera_matrix[0, 2]
+    #             )
+    #             v = (
+    #                 camera_matrix[1, 1] * (camera_points[1] / camera_points[2])
+    #                 + camera_matrix[1, 2]
+    #             )
+    #         if int(v) in range(0, self.camera_height):
+    #             if int(u) in range(0, self.camera_width):
+    #                 points2D.append([camera_points, (int(u), int(v))])
+    #     return points2D
 
     def reset(self):
         self.slam.reset()

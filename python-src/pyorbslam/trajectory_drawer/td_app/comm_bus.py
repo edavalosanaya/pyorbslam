@@ -16,3 +16,6 @@ class CommBus(QtCore.QObject):
     visualCreate = QtCore.pyqtSignal(str, str)
     visualDelete = QtCore.pyqtSignal(str)
     toggleCamera = QtCore.pyqtSignal()
+
+    # Resetting
+    resetEvent = QtCore.pyqtSignal()

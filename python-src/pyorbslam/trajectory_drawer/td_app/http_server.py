@@ -28,7 +28,8 @@ class HttpServer:
             web.get("/shutdown", self.shutdown_server),
             web.post("/config/zeromq", self.config_zeromq),
             web.post("/visuals/create", self.create_visual),
-            web.post("/visuals/delete", self.delete_visual)
+            web.post("/visuals/delete", self.delete_visual),
+            web.post("/reset", self.reset)
         ])
 
         # Run in an AsyncLoopThread
@@ -76,6 +77,10 @@ class HttpServer:
         # Obtain information, json={'name': name}
         data = await request.json()
         self.cbus.visualDelete.emit(data['name'])
+        return web.HTTPOk()
+
+    async def reset(self, request):
+        self.cbus.resetEvent.emit()
         return web.HTTPOk()
 
     def stop(self):
