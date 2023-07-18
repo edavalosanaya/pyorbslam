@@ -11,11 +11,12 @@ logger = logging.getLogger("pyorbslam")
 
 TEST_DIR = pathlib.Path(os.path.abspath(__file__)).parent
 GIT_ROOT = TEST_DIR.parent
+OUTPUTS_DIR = TEST_DIR / 'outputs'
 SETTINGS_DIR = GIT_ROOT / 'settings'
 DEFAULT_VOCAB = GIT_ROOT / 'cpp' / 'ORB_SLAM3' / 'Vocabulary' / 'ORBvoc.txt'
 EUROC_TEST_DATASET = TEST_DIR / 'data' / 'EuRoC' / 'MH01'
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def slam_in_okay():
     slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC.yaml')
     

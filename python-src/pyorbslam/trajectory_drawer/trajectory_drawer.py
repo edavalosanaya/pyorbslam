@@ -14,17 +14,17 @@ logger = logging.getLogger("pyorbslam")
 
 class TrajectoryDrawer:
 
-    def __init__(self):
+    def __init__(self, port: int = 9000):
 
         # Create the app
-        self.app = TDApp()
+        self.app = TDApp(port=port)
 
         # Start the VisPy application process
         self.app_proc = mp.Process(target=self.app.run)
         self.app_proc.start()
 
         # Create an HTTP Client
-        self.client = TDClient()
+        self.client = TDClient(port=port)
 
         # Container information
         self.trajectory_line = np.empty((0,3))
