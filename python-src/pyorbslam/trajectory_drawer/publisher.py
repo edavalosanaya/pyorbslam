@@ -1,10 +1,8 @@
 import logging
 import time
 import requests
-import threading
-import collections
-from typing import Dict
 
+import cv2
 import zmq
 
 from .data_chunk import DataChunk
@@ -39,6 +37,11 @@ class Publisher:
     def send(self, data_chunk: DataChunk):
 
         if data_chunk.vtype == 'image':
+
+            # Check for grey image
+            if len(data_chunk.data.shape) == 2:
+                data_chunk.data = cv2.cvtColor(data_chunk.data, cv2.COLOR_GRAY2RGB)
+
             data_chunk.data = serialize_image(data_chunk.data)
         # elif data_chunk.vtype == 'point cloud':
         #     data_chunk.data = serialize_pc(data_chunk.data)

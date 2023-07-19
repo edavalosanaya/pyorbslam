@@ -83,5 +83,5 @@ class HttpServer:
         self.cbus.resetEvent.emit()
         return web.HTTPOk()
 
-    def stop(self):
+    def stop(self, event=None):
         self._thread.stop()

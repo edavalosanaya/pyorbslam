@@ -67,6 +67,9 @@ class ASLAM:
         self.camera_width = config['Camera.width']
         self.camera_height = config['Camera.height']
 
+    def get_current_frame(self):
+        return self.image
+
     def get_pose_to_target(self, precedent_frame: int = -1) -> np.ndarray:
         """Get the pose between a previous frame X in the sequence and the current one T.
 

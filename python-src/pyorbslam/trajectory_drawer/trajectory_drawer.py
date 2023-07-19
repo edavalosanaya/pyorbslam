@@ -5,6 +5,7 @@ from typing import Tuple, Union
 import trimesh
 import numpy as np
 
+from ..tools import apply_rt_to_pts
 from .td_app import TDApp
 from .td_client import TDClient
 from .data_container import MeshContainer, PointCloudContainer
@@ -60,16 +61,29 @@ class TrajectoryDrawer:
 
         return np.matmul(rt, pose)
 
+    def _correct_pts(self, point_cloud: np.ndarray):
+        rt = np.array([
+            [1, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, -1, 0, 0],
+            [0, 0, 0, 1]
+        ])
+        
+        return apply_rt_to_pts(point_cloud, rt)
+
     #####################################################################################
     ## Trajectory Related Methods
     #####################################################################################
 
     def plot_path(self, line: np.ndarray):
+
+        # Correct the line to the visualization on the system
+        correct_line = self._correct_pts(line)
         
         if not 'path' in self.client.visuals:
-            self.client.create_visual('path', 'line', line)
+            self.client.create_visual('path', 'line', correct_line)
         else:
-            self.client.update_visual('path', 'line', line)
+            self.client.update_visual('path', 'line', correct_line)
 
     def plot_trajectory(self, pose: np.ndarray):
 
@@ -102,6 +116,9 @@ class TrajectoryDrawer:
         self.client.send_image(image)
 
     def plot_pointcloud(self, name: str, pts: np.ndarray, colors: Union[np.ndarray, Tuple[float, float, float, float]]=(1.0,1.0,1.0,1.0)):
+
+        # Apply correction to the points
+        pts = self._correct_pts(pts)
 
         # Create the container
         pc_container = PointCloudContainer(
@@ -139,7 +156,7 @@ class TrajectoryDrawer:
         )
         self.client.create_visual(name, 'mesh', mesh_container)
 
-    def update_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple=(1,0,0,1)):
+    def update_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple[float, float, float, float]=(1.0,0.0,0.0,1.0)):
         
         if name not in self.client.visuals:
             logger.warning(f"{self}: Cannot update mesh that hasn't been added: {name}")

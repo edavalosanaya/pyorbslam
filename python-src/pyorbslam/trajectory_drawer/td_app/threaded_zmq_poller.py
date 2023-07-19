@@ -65,7 +65,7 @@ class ThreadedZmqPoller(QtCore.QThread):
                 # Update
                 data_bytes = s.recv()
                 data_chunk: DataChunk = deserialize(data_bytes)
-                logger.debug(f"{self}: Received {data_chunk.vtype}")
+                # logger.debug(f"{self}: Received {data_chunk.vtype}")
 
                 # Process the incoming data
                 if data_chunk.vtype in ['line', 'mesh', 'point cloud']:

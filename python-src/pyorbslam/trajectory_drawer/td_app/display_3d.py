@@ -75,6 +75,11 @@ class Display3D(gl.GLViewWidget):
 
         # Clear the visuals list
         self.visuals.clear()
+        
+        # Create an AxisItem for the bottom axis
+        bottom_axis = gl.GLAxisItem()
+        self.addItem(bottom_axis)
+        self.visuals['axis'] = bottom_axis
 
     ####################################################################################
     ## Visual Networking
@@ -132,6 +137,7 @@ class Display3D(gl.GLViewWidget):
         mesh.setMeshData(
             meshdata=mesh_data,
             edgeColor=mesh_cont.color,
+            # edgeColor=(1,0,0,1),
             drawFaces=mesh_cont.drawFaces, 
             drawEdges=mesh_cont.drawEdges
         )

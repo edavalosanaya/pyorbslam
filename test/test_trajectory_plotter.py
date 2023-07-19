@@ -2,7 +2,6 @@ import time
 import pickle
 import logging
 
-import trimesh
 import pandas as pd
 import imutils
 import cv2
@@ -10,7 +9,7 @@ import numpy as np
 import pytest
 import pyorbslam
 
-from .conftest import TEST_DIR, EUROC_TEST_DATASET
+from .conftest import TEST_DIR, OUTPUTS_DIR
 
 logger = logging.getLogger("pyorbslam")
 
@@ -18,12 +17,6 @@ EXAMPLE_TRAJECTORY = TEST_DIR / 'data' / 'trajectory.pkl'
 MONITOR_PLY = TEST_DIR / 'assets' / 'monitor.ply'
 MONITOR_POSE = TEST_DIR / 'assets' / 'tobii_2500.npy'
     
-def string_to_numpy(string):
-    string = string.replace('[', '').replace(']', '').replace('\n', '')
-    array = np.fromstring(string, sep=' ')
-    array = array.reshape((4, 4))
-    return array
-
 @pytest.fixture
 def example_trajectory():
     
@@ -85,59 +78,23 @@ def test_image_streaming():
 
 def test_trajectory_and_image():
         
-    rt = np.array([
-        [1, 0, 0, 0],
-        [0, 0, 1, 0],
-        [0, -1, 0, 0],
-        [0, 0, 0, 1]
-    ])
-    # monitor_pose = np.array([
-    #     [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 1.47544021e+01],
-    #     [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02,-4.87549905e+00],
-    #     [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01,3.14412418e+01],
-    #     [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
-    # )
-    monitor_pose = np.array([
-        [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 0.235], #left-right
-        [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, 0.04875], #+1 -> down
-        [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 0.6],
-        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
-    )
-
     # Load video
     test_video = TEST_DIR/'data'/'scenevideo.mp4'
     assert test_video.exists()
     cap = cv2.VideoCapture(str(test_video), 0)
+
+    # Create drawer
+    drawer = pyorbslam.TrajectoryDrawer()
 
     # Load trajectory
     tobii_trajectory_path = TEST_DIR / 'data' / 'tobii_trajectory_path.csv'
     tobii_trajectory_path.exists()
     pose_data = pd.read_csv(str(tobii_trajectory_path))
 
-    # Get the 2500 pose
-    pose_2500 = string_to_numpy(pose_data.iloc[2500].pose)
-
-    # Load 3D model
-    monitor: trimesh.Trimesh = trimesh.load_mesh(str(MONITOR_PLY))
-    monitor = monitor.apply_scale(0.01)
-    # monitor_pose = np.load(str(MONITOR_POSE))
-    monitor = monitor.apply_transform(monitor_pose)
-    monitor = monitor.apply_transform(rt)
-    monitor = monitor.apply_transform(pose_2500)
-
-    # Create drawer
-    drawer = pyorbslam.TrajectoryDrawer()
-
-    # Configure monitor
-    drawer.add_mesh('monitor', monitor, color=(0,1,0,1))
-
-    # i = 2500
-    # i = 0
-
     for i in range(len(pose_data)):
 
         _, frame = cap.read()
-        pose = string_to_numpy(pose_data.iloc[i].pose)
+        pose = pyorbslam.tools.string_to_numpy(pose_data.iloc[i].pose)
 
         # Show
         try:
@@ -156,5 +113,44 @@ def test_point_cloud_visualization():
         colors = np.random.uniform(low=0, high=1, size=(N,4))
         drawer.plot_pointcloud('test', pts, colors)
         time.sleep(0.5)
+
+    drawer.stay()
+
+def test_visualize_pose_image_and_pointcloud():
+    
+    drawer = pyorbslam.TrajectoryDrawer()
+   
+    # Iterate over the large dataset
+    for i in range(10, 500):
+        # load
+        data = pyorbslam.tools.load_slam_data(i, OUTPUTS_DIR / 'large_dataset')
+
+        # Visualize
+        drawer.plot_image(data['image'])
+        drawer.plot_trajectory(data['pose'])
+        drawer.plot_pointcloud('pc', data['point cloud'])
+        time.sleep(0.5)
+        # time.sleep(1/60)
+
+    drawer.stay()
+
+
+def test_plot_gaze_vector(example_trajectory):
+    drawer = pyorbslam.TrajectoryDrawer()
+
+    line = np.array([
+        [0,0,0],
+        [0,0,1]
+    ])
+
+    for pose in example_trajectory:
+
+        # Compute gaze vector
+        gaze_vector = pyorbslam.tools.apply_rt_to_pts(line, pose)
+        
+        # Draw
+        drawer.plot_path(gaze_vector)
+        drawer.plot_trajectory(pose)
+        time.sleep(0.05)
 
     drawer.stay()
