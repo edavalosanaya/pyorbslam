@@ -19,12 +19,18 @@ dependencies = [
     "numpy",
     "tqdm",
     "PyYAML",
-    "opencv-python",
+    "opencv-python-headless",
     "Pillow",
     "PyOpenGL",
     "plyfile",
     "pyqtgraph",
-    "PyQt5"
+    "PyQt5",
+    "pyzmq",
+    "simplejpeg",
+    "netifaces",
+    "blosc",
+    "trimesh",
+    "aiohttp"
 ]
 
 [project.optional-dependencies]
@@ -55,12 +61,13 @@ directory = "python-src"
 include = ["src/*"]
 
 [tool.py-build-cmake.cmake]
-minimum_version = "3.15"
+minimum_version = "3.20"
 build_type = "Release"
 source_path = "src"
 build_args = ["-j3"]
 install_components = ['python_modules']
 install_args = ['--verbose']
+find_python = true
 
 # Reference:
 # https://stackoverflow.com/questions/4673373/logging-within-pytest-tests

@@ -23,13 +23,22 @@ else()
 endif()
 
 # find_package(Python 3 COMPONENTS Interpreter Development Numpy)
-find_package(PythonLibs)
 find_package(PythonInterp 3)
+find_package(PythonLibs)
+
+execute_process(
+    COMMAND ${Python_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
+    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Get the NumPy include directory from Python
+set(PYTHON_NUMPY_INCLUDE_DIR "${PYTHON_SITE_PACKAGES}/numpy/core/include")
+
+message(STATUS "PYTHON_SITE_PACKAGES = ${PYTHON_SITE_PACKAGES}")
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
-
-find_package(NumPy)
 message(STATUS "PYTHON_NUMPY_INCLUDE_DIR = ${PYTHON_NUMPY_INCLUDE_DIR}")
 
 find_package(Boost REQUIRED COMPONENTS python numpy3)
@@ -37,7 +46,6 @@ message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 
 find_package(OpenCV COMPONENTS core imgproc highgui REQUIRED)
-
 
 # RPATH fiddling for the library, so that the installed version can find the linked libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

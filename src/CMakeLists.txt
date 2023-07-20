@@ -13,9 +13,9 @@ else()
 endif()
 
 # Handle possible Anaconda environment
-# if(DEFINED ENV{CONDA_PREFIX})
-#     set(CMAKE_PREFIX_PATH CONDA_PREFIX)
-# endif()
+if(DEFINED ENV{CONDA_PREFIX})
+    set(CMAKE_PREFIX_PATH CONDA_PREFIX)
+endif()
 
 # Disable Warnings
 add_compile_options(
