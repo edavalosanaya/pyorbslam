@@ -42,7 +42,7 @@ def test_plot_line(example_trajectory):
 
     N = 100
     line = np.random.uniform(low=0, high=1, size=(N, 3))
-    drawer.plot_path(line)
+    drawer.plot_line(line)
 
     drawer.stay()
 
@@ -149,7 +149,7 @@ def test_plot_gaze_vector(example_trajectory):
         gaze_vector = pyorbslam.tools.apply_rt_to_pts(line, pose)
         
         # Draw
-        drawer.plot_path(gaze_vector)
+        drawer.plot_line(gaze_vector)
         drawer.plot_trajectory(pose)
         time.sleep(0.05)
 

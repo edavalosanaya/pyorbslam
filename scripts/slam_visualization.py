@@ -20,8 +20,8 @@ drawer = pyorbslam.TrajectoryDrawer(port=9000)
 # Add monitor
 correct_rt = np.array([
     [1, 0, 0, 0],
-    [0, 0, 1, 0],
-    [0, -1, 0, 0],
+    [0, 0, -1, 0],
+    [0, 1, 0, 0],
     [0, 0, 0, 1]
 ])
 t = np.array([0.9, -0.15, 1.5])
@@ -31,18 +31,22 @@ rt = np.eye(4)
 rt[:3, :3] = R
 rt[:3, 3] = t
 
+# monitor_pose = np.array([
+#     [ 9.97679500e-01, -2.47593077e-02,  6.34239133e-02, 0.235], #left-right
+#     [ 2.71596339e-02,  9.98936183e-01, -3.72673573e-02, 0.04875], #+1 -> down
+#     [-6.24337279e-02,  3.89034486e-02,  9.97290605e-01, 0.6],
+#     [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,1.00000000e+00]]
+# )
+
 # Load 3D model
 monitor: trimesh.Trimesh = trimesh.load_mesh(str(MONITOR_PLY))
 monitor = monitor.apply_scale(0.03)
 monitor = monitor.apply_transform(rt)
 monitor = monitor.apply_transform(correct_rt)
 
-# Repair the 3D model
-# monitor.repair.fix_inversion()
-
 # Configure monitor
-drawer.add_mesh('monitor', monitor)
-drawer.update_mesh('monitor', monitor)
+drawer.add_mesh('monitor', monitor, color=(0.0,1.0,0.0,1.0))
+drawer.update_mesh('monitor', monitor, color=(0.0,1.0,0.0,1.0))
 
 # Necessary things to track the progress of SLAM
 i = 0
@@ -55,7 +59,7 @@ while True:
     # Draw the gaze    
     line = np.array([
         [0,0,0],
-        [0,0,1]
+        [0,0,2]
     ])
 
     if data:
@@ -70,7 +74,7 @@ while True:
         fix = (int(w/2), int(h/2))
         img = cv2.circle(img, fix, 10, (0,255,0), 3)
 
-        drawer.plot_path(gaze_vector)
+        drawer.plot_line(gaze_vector, color=(1.0, 0.0, 0.0, 1.0), width=5)
         drawer.plot_image(img)
         drawer.plot_trajectory(data['pose'])
         drawer.plot_pointcloud('pc', data['point cloud'])

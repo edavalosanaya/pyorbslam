@@ -8,7 +8,7 @@ import numpy as np
 from ..tools import apply_rt_to_pts
 from .td_app import TDApp
 from .td_client import TDClient
-from .data_container import MeshContainer, PointCloudContainer
+from .data_container import MeshContainer, PointCloudContainer, LineContainer
 
 logger = logging.getLogger("pyorbslam")
 
@@ -51,39 +51,40 @@ class TrajectoryDrawer:
             [4,3,2]
         ])
 
-    def _correct_pose(self, pose: np.ndarray):
-        rt = np.array([
+        # Creating the correction matrix
+        self._correction_rt = np.array([
             [1, 0, 0, 0],
             [0, 0, 1, 0],
             [0, -1, 0, 0],
             [0, 0, 0, 1]
         ])
 
-        return np.matmul(rt, pose)
+    def _correct_pose(self, pose: np.ndarray):
+        return np.matmul(self._correction_rt, pose)
 
     def _correct_pts(self, point_cloud: np.ndarray):
-        rt = np.array([
-            [1, 0, 0, 0],
-            [0, 0, 1, 0],
-            [0, -1, 0, 0],
-            [0, 0, 0, 1]
-        ])
-        
-        return apply_rt_to_pts(point_cloud, rt)
+        return apply_rt_to_pts(point_cloud, self._correction_rt)
 
     #####################################################################################
     ## Trajectory Related Methods
     #####################################################################################
 
-    def plot_path(self, line: np.ndarray):
+    def plot_line(self, line: np.ndarray, color: Union[Tuple[float, float, float, float], np.ndarray] = (1.0, 1.0, 1.0, 1.0), width: int = 1):
 
         # Correct the line to the visualization on the system
         correct_line = self._correct_pts(line)
+
+        # Create container
+        line_cont = LineContainer(
+            pos=correct_line,
+            color=color,
+            width=width
+        )
         
         if not 'path' in self.client.visuals:
-            self.client.create_visual('path', 'line', correct_line)
+            self.client.create_visual('path', 'line', line_cont)
         else:
-            self.client.update_visual('path', 'line', correct_line)
+            self.client.update_visual('path', 'line', line_cont)
 
     def plot_trajectory(self, pose: np.ndarray):
 
@@ -93,20 +94,27 @@ class TrajectoryDrawer:
         # Extract the information here
         camera_center = pose[0:3, 3].reshape((1,3))
         self.trajectory_line = np.concatenate((self.trajectory_line, camera_center))
+
+        # Create line container
+        line_cont = LineContainer(
+            pos=self.trajectory_line,
+        )
        
         # Drawing the trajectory
         if not 'trajectory_line' in self.client.visuals:
-            self.client.create_visual('trajectory_line', 'line', self.trajectory_line)
+            self.client.create_visual('trajectory_line', 'line', line_cont)
         else:
-            self.client.update_visual('trajectory_line', 'line', self.trajectory_line)
+            self.client.update_visual('trajectory_line', 'line', line_cont)
 
-        # Drawing the FOV
+        # Create Mesh Container
         fov_container = MeshContainer(
             mesh=self.fov_mesh.copy().apply_transform(pose),
+            edgeColor=(1.0,0.0,0.0,1.0),
             drawFaces=False,
             drawEdges=True,
-            color=(1,0,0,1)
         )
+        
+        # Drawing the FOV
         if 'fov' not in self.client.visuals:
             self.client.create_visual('fov', 'mesh', fov_container)
         else:
@@ -141,7 +149,7 @@ class TrajectoryDrawer:
     ## 3D Plotting
     #####################################################################################
    
-    def add_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple[float, float, float, float]=(1.0,0.0,0.0,1.0)):
+    def add_mesh(self, name: str, mesh: trimesh.Trimesh, color:Tuple[float, float, float, float]=(1.0,1.0,1.0,1.0), edgeColor:Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0), drawFaces:bool=True, drawEdges:bool=False):
 
         if name in self.client.visuals:
             logger.warning(f"{self}: Cannot add mesh that is already added: {name}")
@@ -149,14 +157,15 @@ class TrajectoryDrawer:
 
         # Create container
         mesh_container = MeshContainer(
-            mesh=mesh,
+            mesh=mesh.apply_transform(self._correction_rt),
+            color=color,
+            edgeColor=edgeColor,
             drawFaces=drawFaces,
-            drawEdges=drawEdges,
-            color=color
+            drawEdges=drawEdges
         )
         self.client.create_visual(name, 'mesh', mesh_container)
 
-    def update_mesh(self, name: str, mesh: trimesh.Trimesh, drawFaces:bool=True, drawEdges:bool=True, color:Tuple[float, float, float, float]=(1.0,0.0,0.0,1.0)):
+    def update_mesh(self, name: str, mesh: trimesh.Trimesh, color:Tuple[float, float, float, float]=(1.0,1.0,1.0,1.0), edgeColor:Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0), drawFaces:bool=True, drawEdges:bool=False):
         
         if name not in self.client.visuals:
             logger.warning(f"{self}: Cannot update mesh that hasn't been added: {name}")
@@ -164,10 +173,11 @@ class TrajectoryDrawer:
         
         # Create container
         mesh_container = MeshContainer(
-            mesh=mesh,
+            mesh=mesh.apply_transform(self._correction_rt),
+            color=color,
+            edgeColor=edgeColor,
             drawFaces=drawFaces,
-            drawEdges=drawEdges,
-            color=color
+            drawEdges=drawEdges
         )
         self.client.update_visual(name, 'mesh', mesh_container)
 

@@ -9,7 +9,7 @@ from dataclasses import asdict
 logger = logging.getLogger('pyorbslam')
 
 from ..data_chunk import DataChunk
-from ..data_container import MeshContainer, PointCloudContainer
+from ..data_container import MeshContainer, PointCloudContainer, LineContainer
 
 class Display3D(gl.GLViewWidget):
 
@@ -124,21 +124,26 @@ class Display3D(gl.GLViewWidget):
         return gl.GLLinePlotItem(pos=np.empty((0,3)))
 
     def update_line(self, line, data_chunk: DataChunk):
-        line.setData(pos=data_chunk.data)
+        line_cont: LineContainer = data_chunk.data
+        line.setData(
+            pos=line_cont.pos,
+            color=line_cont.color,
+            width=line_cont.width
+        )
 
     def create_mesh(self):
-        return gl.GLMeshItem(smooth=False)
+        return gl.GLMeshItem(meshdata=None, smooth=False)
 
     def update_mesh(self, mesh, data_chunk: DataChunk):
         mesh_cont: MeshContainer = data_chunk.data
 
         # Define the vertices and faces of the mesh
-        mesh_data = gl.MeshData(vertexes=mesh_cont.mesh.vertices, faces=mesh_cont.mesh.faces)
+        mesh_data = gl.MeshData(vertexes=np.array(mesh_cont.mesh.vertices), faces=np.array(mesh_cont.mesh.faces))
         mesh.setMeshData(
             meshdata=mesh_data,
-            edgeColor=mesh_cont.color,
-            # edgeColor=(1,0,0,1),
-            drawFaces=mesh_cont.drawFaces, 
+            color=mesh_cont.color,
+            edgeColor=mesh_cont.edgeColor,
+            drawFaces=mesh_cont.drawFaces,
             drawEdges=mesh_cont.drawEdges
         )
         mesh.meshDataChanged()
