@@ -105,7 +105,7 @@ class Display3D(gl.GLViewWidget):
 
         # Change if new trajectory is obtain and we are following the trajectory
         if data_chunk.name == 'trajectory_line' and self.follow_trajectory:
-            camera_center = data_chunk.data[-1]
+            camera_center = data_chunk.data.pos[-1]
             self.setCameraPosition(pos=QVector3D(camera_center[0], camera_center[1], camera_center[2]), distance=0.01)
 
     def delete_visual(self, name: str):

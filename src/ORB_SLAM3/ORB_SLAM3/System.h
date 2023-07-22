@@ -180,6 +180,7 @@ public:
     // Added for the Python bindings
     vector<KeyFrame*> GetKeyFrames() const;
     Tracking* GetTracker() const;
+    Atlas* GetAtlas() const;
 
     // For debugging
     double GetTimeFromIMUInit();

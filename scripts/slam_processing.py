@@ -20,6 +20,7 @@ N = 1000
 
 slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'Tobii.yaml')
 drawer = pyorbslam.TrajectoryDrawer(port=9000)
+# map = pyorbslam.Map()
 
 # Load the video
 video_path = GIT_ROOT/'test'/'data'/'scenevideo.mp4'
@@ -49,8 +50,15 @@ for i in tqdm.tqdm(range(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
     if state == pyorbslam.State.OK:
         pose = slam.get_pose_to_target()
         drawer.plot_trajectory(pose)
-        drawer.plot_pointcloud('pc', slam.get_point_cloud())
-        pyorbslam.tools.record_slam_data(i, slam, OUTPUTS_DIR / 'tobii')
+
+        # Visualize map
+        # pc = map.step(slam.get_point_cloud())
+        # pc = slam.get_point_cloud()
+        pc = slam.get_current_map_points()
+        drawer.plot_pointcloud('pc', pc)
+        # drawer.plot_pointcloud('pc', slam.get_point_cloud())
+        # drawer.plot_pointcloud('pc', slam.get_point_cloud())
+        # pyorbslam.tools.record_slam_data(i, slam, OUTPUTS_DIR / 'tobii')
 
     # Update
     i += 1

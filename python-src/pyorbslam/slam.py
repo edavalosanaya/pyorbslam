@@ -97,12 +97,6 @@ class ASLAM:
 
         return np.empty((4,4))
 
-    def get_abs_cloud(self) -> np.ndarray:
-        if self.slam.get_tracking_state() == orbslam3.TrackingState.OK:
-            return self.slam.get_tracked_mappoints()
-        else:
-            return np.empty((0,3))
-
     def get_camera_matrix(self):
         return self.slam.get_camera_matrix()
 
@@ -126,7 +120,17 @@ class ASLAM:
 
         """
         if self.get_state() == State.OK:
-            return np.array(self.get_abs_cloud())
+            return np.array(self.slam.get_tracked_mappoints())
+        return np.empty((0,3))
+
+    def get_current_points(self) -> np.ndarray:
+        if self.get_state() == State.OK:
+            return np.array(self.slam.get_current_points())
+        return np.empty((0,3))
+
+    def get_current_map_points(self) -> np.ndarray:
+        if self.get_state() == State.OK:
+            return np.array(self.slam.get_current_map_points())
         return np.empty((0,3))
 
     # def get_point_cloud_colored(self):

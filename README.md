@@ -14,6 +14,11 @@ First, you need to install the dependencies with the following command:
 sudo apt-get install libopencv-dev libeigen3-dev
 ```
 
+To be more specific on the dependency version, there are listed below:
+
+* OpenCV >= 4.4
+* Eigen3 >= 3.1.0
+
 Then clone the repo and install the package. Make sure that you have CMake and gcc update to date.
 
 ```bash

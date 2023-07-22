@@ -17,8 +17,13 @@ public:
                   ORB_SLAM3::System::eSensor sensorMode = ORB_SLAM3::System::eSensor::RGBD);
     ~ORBSlamPython();
 
+    // Lifecycle
     bool initialize();
-    bool isRunning();
+    void shutdown();
+    void reset();
+    void activateSLAMTraking();
+    void deactivateSLAMTraking();
+    // Processing
     PyObject *loadAndProcessMono(std::string imageFile, double timestamp);
     PyObject *processMono(cv::Mat image, double timestamp, std::string imageFile);
     PyObject *loadAndProcessStereo(std::string leftImageFile, std::string rightImageFile, double timestamp);
@@ -29,19 +34,22 @@ public:
     PyObject *processImuStereo(cv::Mat leftImage, cv::Mat rightImage, double timestamp, boost::python::numpy::ndarray imu);
     PyObject *loadAndProcessRGBD(std::string imageFile, std::string depthImageFile, double timestamp);
     PyObject *processRGBD(cv::Mat image, cv::Mat depthImage, double timestamp);
-    void reset();
-    void shutdown();
-    void activateSLAMTraking();
-    void deactivateSLAMTraking();
+    // Point cloud information
     boost::python::list getCurrentPoints() const;
+    boost::python::list getKeyframePoints() const;
+    boost::python::list getTrajectoryPoints() const;
+    boost::python::list getTrackedMappoints() const;
+    // Map Information
+    unsigned int getMapCount() const;
+    boost::python::list getCurrentMapPoints() const;
+    // Meta data
+    bool isRunning();
     ORB_SLAM3::Tracking::eTrackingState getTrackingState() const;
     PyObject *getCameraMatrix() const;
     unsigned int getNumFeatures() const;
     unsigned int getNumMatches() const;
     boost::python::tuple getDistCoeff() const;
-    boost::python::list getKeyframePoints() const;
-    boost::python::list getTrajectoryPoints() const;
-    boost::python::list getTrackedMappoints() const;
+    // Settings
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
     void setMode(ORB_SLAM3::System::eSensor mode);

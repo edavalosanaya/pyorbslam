@@ -47,7 +47,13 @@ BOOST_PYTHON_MODULE(orbslam3)
 
     boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<const char *, const char *, boost::python::optional<ORB_SLAM3::System::eSensor>>())
         .def(boost::python::init<std::string, std::string, boost::python::optional<ORB_SLAM3::System::eSensor>>())
+        // Lifecycle
         .def("initialize", &ORBSlamPython::initialize)
+        .def("shutdown", &ORBSlamPython::shutdown)
+        .def("reset", &ORBSlamPython::reset)
+        .def("activateSLAM", &ORBSlamPython::activateSLAMTraking)
+        .def("deactivateSLAM", &ORBSlamPython::deactivateSLAMTraking)
+        // Processing
         .def("load_and_process_mono", &ORBSlamPython::loadAndProcessMono)
         .def("process_image_mono", &ORBSlamPython::processMono)
         .def("load_and_process_imu_mono", &ORBSlamPython::loadAndProcessImuMono)
@@ -58,22 +64,24 @@ BOOST_PYTHON_MODULE(orbslam3)
         .def("process_image_imu_stereo", &ORBSlamPython::processImuStereo)
         .def("load_and_process_rgbd", &ORBSlamPython::loadAndProcessRGBD)
         .def("process_image_rgbd", &ORBSlamPython::processRGBD)
-        .def("shutdown", &ORBSlamPython::shutdown)
-        .def("is_running", &ORBSlamPython::isRunning)
-        .def("reset", &ORBSlamPython::reset)
-        .def("activateSLAM", &ORBSlamPython::activateSLAMTraking)
-        .def("deactivateSLAM", &ORBSlamPython::deactivateSLAMTraking)
+        // Point cloud information
         .def("get_current_points", &ORBSlamPython::getCurrentPoints)
-        .def("get_camera_matrix", &ORBSlamPython::getCameraMatrix)
-        .def("get_dist_coef", &ORBSlamPython::getDistCoeff)
-        .def("set_mode", &ORBSlamPython::setMode)
-        .def("set_use_viewer", &ORBSlamPython::setUseViewer)
         .def("get_keyframe_points", &ORBSlamPython::getKeyframePoints)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
         .def("get_tracked_mappoints", &ORBSlamPython::getTrackedMappoints)
+        // Map information
+        .def("get_map_count", &ORBSlamPython::getMapCount)
+        .def("get_current_map_points", &ORBSlamPython::getCurrentMapPoints)
+        // Meta data
+        .def("is_running", &ORBSlamPython::isRunning)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("get_num_features", &ORBSlamPython::getNumFeatures)
         .def("get_num_matched_features", &ORBSlamPython::getNumMatches)
+        .def("get_camera_matrix", &ORBSlamPython::getCameraMatrix)
+        .def("get_dist_coef", &ORBSlamPython::getDistCoeff)
+        // Settings
+        .def("set_mode", &ORBSlamPython::setMode)
+        .def("set_use_viewer", &ORBSlamPython::setUseViewer)
         .def("save_settings", &ORBSlamPython::saveSettings)
         .def("load_settings", &ORBSlamPython::loadSettings)
         .def("save_settings_file", &ORBSlamPython::saveSettingsFile)
@@ -576,6 +584,43 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
 
     return trajectory;
 }
+
+unsigned int ORBSlamPython::getMapCount() const
+{
+    if (system)
+    {
+        return system->GetAtlas()->CountMaps();
+    }
+    return -1;
+}
+
+boost::python::list ORBSlamPython::getCurrentMapPoints() const
+{
+    if (!system)
+    {
+        return boost::python::list();
+    }
+
+    // This is copied from the ORB_SLAM3 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
+    ORB_SLAM3::Atlas *mpAtlas = system->GetAtlas();
+    vector<ORB_SLAM3::MapPoint *> Mps = mpAtlas->GetAllMapPoints();
+
+    boost::python::list map_points;
+    for (size_t i = 0; i < Mps.size(); i++)
+    {
+        if (Mps[i] != NULL)
+        {
+            cv::Mat wp = ORB_SLAM3::Converter::toCvMat(Mps[i]->GetWorldPos());
+            map_points.append(boost::python::make_tuple(
+                wp.at<float>(0, 0),
+                wp.at<float>(1, 0),
+                wp.at<float>(2, 0)));
+        }
+    }
+
+    return map_points;
+}
+
 
 void ORBSlamPython::setMode(ORB_SLAM3::System::eSensor mode)
 {

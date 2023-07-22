@@ -2,6 +2,12 @@ import logging
 
 logger = logging.getLogger("pyorbslam")
 
+def test_map_count(slam_in_okay):
+    logger.debug(f"{slam_in_okay.slam.get_map_count()}")
+
+def test_get_current_map_points(slam_in_okay):
+    logger.debug(f"{slam_in_okay.slam.get_current_map_points()}")
+
 def test_get_current_points(slam_in_okay):
     logger.debug(f"{slam_in_okay.slam.get_current_points()}")
 
