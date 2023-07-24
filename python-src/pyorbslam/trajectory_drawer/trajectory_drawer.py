@@ -1,5 +1,6 @@
 import logging
 import multiprocessing as mp
+import atexit
 from typing import Tuple, Union
 
 import trimesh
@@ -58,6 +59,8 @@ class TrajectoryDrawer:
             [0, -1, 0, 0],
             [0, 0, 0, 1]
         ])
+
+        atexit.register(self.shutdown)
 
     def _correct_pose(self, pose: np.ndarray):
         return np.matmul(self._correction_rt, pose)
@@ -191,6 +194,3 @@ class TrajectoryDrawer:
     def shutdown(self):
         self.client.shutdown()
         self.app_proc.join()
-
-    def __del__(self):
-        self.shutdown()

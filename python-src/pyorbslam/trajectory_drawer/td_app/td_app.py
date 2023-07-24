@@ -59,7 +59,7 @@ class AppWindow(gl.GLViewWidget):
         self.cbus.imageUpdate.connect(self.display_image.update_image)
         self.cbus.resetEvent.connect(self.display_image.reset_display)
 
-        self.cbus.closeApp.connect(self.closeEvent)
+        self.cbus.closeApp.connect(self.close)
         self.cbus.closeApp.connect(self.server.stop)
 
     def keyPressEvent(self, event):

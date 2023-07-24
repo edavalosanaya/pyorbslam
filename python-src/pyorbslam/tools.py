@@ -10,11 +10,10 @@ from plyfile import PlyData, PlyElement
 from .state import State
 from .slam import ASLAM
 
-def record_slam_data(step_id: int, slam: ASLAM, dir: pathlib.Path, items: List = ['pose', 'image', 'point cloud']):
+def record_slam_data(step_id: int, slam: ASLAM, dir: pathlib.Path, items: List = ['pose', 'point cloud'], save_rate: int = 5):
 
     # If the directory doesn't exists, create it
-    if not dir.exists():
-        os.mkdir(dir)
+    os.makedirs(dir, exist_ok=True)
 
     # First, if slam isn't working, continue
     if slam.get_state() == State.OK:
@@ -25,13 +24,13 @@ def record_slam_data(step_id: int, slam: ASLAM, dir: pathlib.Path, items: List =
                 with open(dir/f"pose_{step_id}.npy", 'wb') as f:
                     np.save(f, slam.get_pose_to_target())
 
-            elif item == 'point cloud':
+            elif item == 'point cloud' and step_id % save_rate == 0:
                 vertex = np.array([(x,y,z) for x,y,z in slam.get_point_cloud()], dtype=("f4,f4,f4"))
                 ply_data = PlyData([PlyElement.describe(vertex, 'vertex')])
                 ply_data.write(str(dir/f'pc_{step_id}.ply'))
 
-            elif item == 'image':
-                cv2.imwrite(str(dir/f'image_{step_id}.jpg'), slam.get_current_frame())
+            # elif item == 'image':
+            #     cv2.imwrite(str(dir/f'image_{step_id}.jpg'), slam.get_current_frame())
     
     # Update the meta record if present
     meta_file = dir / 'meta.csv'
@@ -51,12 +50,12 @@ def record_slam_data(step_id: int, slam: ASLAM, dir: pathlib.Path, items: List =
     if len(row_index) > 0:
         meta_df.loc[row_index[0]] = {'step_id': step_id, 'data': new_data}
     else:
-        meta_df = meta_df.append({'step_id': step_id, 'data': new_data}, ignore_index=True)
+        meta_df = meta_df._append({'step_id': step_id, 'data': new_data}, ignore_index=True)
 
     # Save the modified DataFrame back to the CSV file
     meta_df.to_csv(meta_file, index=False)
 
-def load_slam_data(step_id: int, dir: pathlib.Path, items: List = ['pose', 'image', 'point cloud']):
+def load_slam_data(step_id: int, dir: pathlib.Path, items: List = ['pose', 'point cloud']):
     
     # First check the directory
     if not dir.exists():
@@ -81,16 +80,18 @@ def load_slam_data(step_id: int, dir: pathlib.Path, items: List = ['pose', 'imag
                 with open(dir/f"pose_{step_id}.npy", 'rb') as f:
                     data[item] = np.load(f)
 
-            # Load image
-            elif item == 'image':
-                data[item] = cv2.imread(str(dir/f"image_{step_id}.jpg"), 0) 
+            # # Load image
+            # elif item == 'image':
+            #     data[item] = cv2.imread(str(dir/f"image_{step_id}.jpg"), 0) 
 
             # Load the pose
             elif item == 'point cloud':
-                with open(dir/f"pc_{step_id}.ply", "rb") as f:
-                    ply_data = PlyData.read(f)
-                    vertex = ply_data['vertex'].data
-                    data[item] = np.array(vertex).view(np.float32).reshape((vertex.shape[0],3))
+                pc_path = dir/f"pc_{step_id}.ply"
+                if pc_path.exists():
+                    with open(pc_path, "rb") as f:
+                        ply_data = PlyData.read(f)
+                        vertex = ply_data['vertex'].data
+                        data[item] = np.array(vertex).view(np.float32).reshape((vertex.shape[0],3))
         
         return data
 
