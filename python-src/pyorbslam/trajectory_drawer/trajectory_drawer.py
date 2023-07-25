@@ -160,7 +160,7 @@ class TrajectoryDrawer:
 
         # Create container
         mesh_container = MeshContainer(
-            mesh=mesh.apply_transform(self._correction_rt),
+            mesh=mesh.copy().apply_transform(self._correction_rt),
             color=color,
             edgeColor=edgeColor,
             drawFaces=drawFaces,
@@ -176,7 +176,7 @@ class TrajectoryDrawer:
         
         # Create container
         mesh_container = MeshContainer(
-            mesh=mesh.apply_transform(self._correction_rt),
+            mesh=mesh.copy().apply_transform(self._correction_rt),
             color=color,
             edgeColor=edgeColor,
             drawFaces=drawFaces,
