@@ -140,7 +140,7 @@ public:
 };
 
 //Preintegration of Imu Measurements
-class Preintegrated
+class Preintegrated : public std::enable_shared_from_this<Preintegrated>
 {
     friend class boost::serialization::access;
     template<class Archive>
@@ -171,14 +171,14 @@ class Preintegrated
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Preintegrated(const Bias &b_, const Calib &calib);
-    Preintegrated(Preintegrated* pImuPre);
+    Preintegrated(std::shared_ptr<IMU::Preintegrated> pImuPre);
     Preintegrated() {}
     ~Preintegrated() {}
-    void CopyFrom(Preintegrated* pImuPre);
+    void CopyFrom(std::shared_ptr<IMU::Preintegrated> pImuPre);
     void Initialize(const Bias &b_);
     void IntegrateNewMeasurement(const Eigen::Vector3f &acceleration, const Eigen::Vector3f &angVel, const float &dt);
     void Reintegrate();
-    void MergePrevious(Preintegrated* pPrev);
+    void MergePrevious(std::shared_ptr<IMU::Preintegrated> pPrev);
     void SetNewBias(const Bias &bu_);
     IMU::Bias GetDeltaBias(const Bias &b_);
 

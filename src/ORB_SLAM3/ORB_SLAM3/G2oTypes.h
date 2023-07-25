@@ -76,9 +76,9 @@ class ImuCamPose
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     ImuCamPose(){}
-    ImuCamPose(KeyFrame* pKF);
+    ImuCamPose(shared_ptr<KeyFrame>  pKF);
     ImuCamPose(Frame* pF);
-    ImuCamPose(Eigen::Matrix3d &_Rwc, Eigen::Vector3d &_twc, KeyFrame* pKF);
+    ImuCamPose(Eigen::Matrix3d &_Rwc, Eigen::Vector3d &_twc, shared_ptr<KeyFrame>  pKF);
 
     void SetParam(const std::vector<Eigen::Matrix3d> &_Rcw, const std::vector<Eigen::Vector3d> &_tcw, const std::vector<Eigen::Matrix3d> &_Rbc,
                   const std::vector<Eigen::Vector3d> &_tbc, const double &_bf);
@@ -114,7 +114,7 @@ class InvDepthPoint
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     InvDepthPoint(){}
-    InvDepthPoint(double _rho, double _u, double _v, KeyFrame* pHostKF);
+    InvDepthPoint(double _rho, double _u, double _v, shared_ptr<KeyFrame>  pHostKF);
 
     void Update(const double *pu);
 
@@ -132,7 +132,7 @@ class VertexPose : public g2o::BaseVertex<6,ImuCamPose>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexPose(){}
-    VertexPose(KeyFrame* pKF){
+    VertexPose(shared_ptr<KeyFrame> pKF){
         setEstimate(ImuCamPose(pKF));
     }
     VertexPose(Frame* pF){
@@ -158,13 +158,13 @@ class VertexPose4DoF : public g2o::BaseVertex<4,ImuCamPose>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexPose4DoF(){}
-    VertexPose4DoF(KeyFrame* pKF){
+    VertexPose4DoF(shared_ptr<KeyFrame> pKF){
         setEstimate(ImuCamPose(pKF));
     }
     VertexPose4DoF(Frame* pF){
         setEstimate(ImuCamPose(pF));
     }
-    VertexPose4DoF(Eigen::Matrix3d &_Rwc, Eigen::Vector3d &_twc, KeyFrame* pKF){
+    VertexPose4DoF(Eigen::Matrix3d &_Rwc, Eigen::Vector3d &_twc, shared_ptr<KeyFrame> pKF){
 
         setEstimate(ImuCamPose(_Rwc, _twc, pKF));
     }
@@ -193,7 +193,7 @@ class VertexVelocity : public g2o::BaseVertex<3,Eigen::Vector3d>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexVelocity(){}
-    VertexVelocity(KeyFrame* pKF);
+    VertexVelocity(shared_ptr<KeyFrame> pKF);
     VertexVelocity(Frame* pF);
 
     virtual bool read(std::istream& is){return false;}
@@ -214,7 +214,7 @@ class VertexGyroBias : public g2o::BaseVertex<3,Eigen::Vector3d>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexGyroBias(){}
-    VertexGyroBias(KeyFrame* pKF);
+    VertexGyroBias(shared_ptr<KeyFrame> pKF);
     VertexGyroBias(Frame* pF);
 
     virtual bool read(std::istream& is){return false;}
@@ -236,7 +236,7 @@ class VertexAccBias : public g2o::BaseVertex<3,Eigen::Vector3d>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexAccBias(){}
-    VertexAccBias(KeyFrame* pKF);
+    VertexAccBias(shared_ptr<KeyFrame> pKF);
     VertexAccBias(Frame* pF);
 
     virtual bool read(std::istream& is){return false;}
@@ -323,7 +323,7 @@ class VertexInvDepth : public g2o::BaseVertex<1,InvDepthPoint>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     VertexInvDepth(){}
-    VertexInvDepth(double invDepth, double u, double v, KeyFrame* pHostKF){
+    VertexInvDepth(double invDepth, double u, double v, shared_ptr<KeyFrame> pHostKF){
         setEstimate(InvDepthPoint(invDepth, u, v, pHostKF));
     }
 
@@ -497,7 +497,7 @@ class EdgeInertial : public g2o::BaseMultiEdge<9,Vector9d>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    EdgeInertial(IMU::Preintegrated* pInt);
+    EdgeInertial(std::shared_ptr<IMU::Preintegrated> pInt);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -538,7 +538,7 @@ public:
 
     const Eigen::Matrix3d JRg, JVg, JPg;
     const Eigen::Matrix3d JVa, JPa;
-    IMU::Preintegrated* mpInt;
+    std::shared_ptr<IMU::Preintegrated>  mpInt;
     const double dt;
     Eigen::Vector3d g;
 };
@@ -550,8 +550,8 @@ class EdgeInertialGS : public g2o::BaseMultiEdge<9,Vector9d>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    // EdgeInertialGS(IMU::Preintegrated* pInt);
-    EdgeInertialGS(IMU::Preintegrated* pInt);
+    // EdgeInertialGS(std::shared_ptr<IMU::Preintegrated>  pInt);
+    EdgeInertialGS(std::shared_ptr<IMU::Preintegrated>  pInt);
 
     virtual bool read(std::istream& is){return false;}
     virtual bool write(std::ostream& os) const{return false;}
@@ -561,7 +561,7 @@ public:
 
     const Eigen::Matrix3d JRg, JVg, JPg;
     const Eigen::Matrix3d JVa, JPa;
-    IMU::Preintegrated* mpInt;
+    std::shared_ptr<IMU::Preintegrated>  mpInt;
     const double dt;
     Eigen::Vector3d g, gI;
 

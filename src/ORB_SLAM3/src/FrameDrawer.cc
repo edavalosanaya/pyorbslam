@@ -47,11 +47,11 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
     float thDepth;
 
     Frame currentFrame;
-    vector<MapPoint*> vpLocalMap;
+    vector<shared_ptr<MapPoint>> vpLocalMap;
     vector<cv::KeyPoint> vMatchesKeys;
-    vector<MapPoint*> vpMatchedMPs;
+    vector<shared_ptr<MapPoint>> vpMatchedMPs;
     vector<cv::KeyPoint> vOutlierKeys;
-    vector<MapPoint*> vpOutlierMPs;
+    vector<shared_ptr<MapPoint>> vpOutlierMPs;
     map<long unsigned int, cv::Point2f> mProjectPoints;
     map<long unsigned int, cv::Point2f> mMatchedInImage;
 
@@ -412,7 +412,7 @@ void FrameDrawer::Update(Tracking *pTracker)
     {
         for(int i=0;i<N;i++)
         {
-            MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
+            shared_ptr<MapPoint> pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
             if(pMP)
             {
                 if(!pTracker->mCurrentFrame.mvbOutlier[i])

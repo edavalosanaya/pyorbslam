@@ -107,8 +107,8 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     MapPoint();
 
-    MapPoint(const Eigen::Vector3f &Pos, KeyFrame* pRefKF, Map* pMap);
-    MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap);
+    MapPoint(const Eigen::Vector3f &Pos, shared_ptr<KeyFrame> pRefKF, Map* pMap);
+    MapPoint(const double invDepth, cv::Point2f uv_init, shared_ptr<KeyFrame> pRefKF, shared_ptr<KeyFrame> pHostKF, Map* pMap);
     MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 
     void SetWorldPos(const Eigen::Vector3f &Pos);
@@ -117,22 +117,22 @@ public:
     Eigen::Vector3f GetNormal();
     void SetNormalVector(const Eigen::Vector3f& normal);
 
-    KeyFrame* GetReferenceKeyFrame();
+    shared_ptr<KeyFrame> GetReferenceKeyFrame();
 
-    std::map<KeyFrame*,std::tuple<int,int>> GetObservations();
+    std::map<shared_ptr<KeyFrame>,std::tuple<int,int>> GetObservations();
     int Observations();
 
-    void AddObservation(KeyFrame* pKF,int idx);
-    void EraseObservation(KeyFrame* pKF);
+    void AddObservation(shared_ptr<KeyFrame> pKF,int idx);
+    void EraseObservation(shared_ptr<KeyFrame> pKF);
 
-    std::tuple<int,int> GetIndexInKeyFrame(KeyFrame* pKF);
-    bool IsInKeyFrame(KeyFrame* pKF);
+    std::tuple<int,int> GetIndexInKeyFrame(shared_ptr<KeyFrame> pKF);
+    bool IsInKeyFrame(shared_ptr<KeyFrame> pKF);
 
     void SetBadFlag();
     bool isBad();
 
-    void Replace(MapPoint* pMP);    
-    MapPoint* GetReplaced();
+    void Replace(shared_ptr<MapPoint> pMP);    
+    shared_ptr<MapPoint> GetReplaced();
 
     void IncreaseVisible(int n=1);
     void IncreaseFound(int n=1);
@@ -149,7 +149,7 @@ public:
 
     float GetMinDistanceInvariance();
     float GetMaxDistanceInvariance();
-    int PredictScale(const float &currentDist, KeyFrame*pKF);
+    int PredictScale(const float &currentDist, shared_ptr<KeyFrame>pKF);
     int PredictScale(const float &currentDist, Frame* pF);
 
     Map* GetMap();
@@ -157,8 +157,8 @@ public:
 
     void PrintObservations();
 
-    void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
-    void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid);
+    void PreSave(set<shared_ptr<KeyFrame>>& spKF,set<shared_ptr<MapPoint>>& spMP);
+    void PostLoad(map<long unsigned int, shared_ptr<KeyFrame>>& mpKFid, map<long unsigned int, shared_ptr<MapPoint>>& mpMPid);
 
 public:
     long unsigned int mnId;
@@ -201,7 +201,7 @@ public:
     double mInvDepth;
     double mInitU;
     double mInitV;
-    KeyFrame* mpHostKF;
+    shared_ptr<KeyFrame> mpHostKF;
 
     static std::mutex mGlobalMutex;
 
@@ -213,7 +213,7 @@ protected:
      Eigen::Vector3f mWorldPos;
 
      // Keyframes observing the point and associated index in keyframe
-     std::map<KeyFrame*,std::tuple<int,int> > mObservations;
+     std::map<shared_ptr<KeyFrame>,std::tuple<int,int> > mObservations;
      // For save relation without pointer, this is necessary for save/load function
      std::map<long unsigned int, int> mBackupObservationsId1;
      std::map<long unsigned int, int> mBackupObservationsId2;
@@ -225,7 +225,7 @@ protected:
      cv::Mat mDescriptor;
 
      // Reference KeyFrame
-     KeyFrame* mpRefKF;
+     shared_ptr<KeyFrame> mpRefKF;
      long unsigned int mBackupRefKFId;
 
      // Tracking counters
@@ -234,7 +234,7 @@ protected:
 
      // Bad flag (we do not currently erase MapPoint from memory)
      bool mbBad;
-     MapPoint* mpReplaced;
+     shared_ptr<MapPoint> mpReplaced;
      // For save relation without pointer, this is necessary for save/load function
      long long int mBackupReplacedId;
 

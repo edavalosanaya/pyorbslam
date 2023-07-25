@@ -46,9 +46,9 @@ class LoopClosing
 {
 public:
 
-    typedef pair<set<KeyFrame*>,int> ConsistentGroup;    
-    typedef map<KeyFrame*,g2o::Sim3,std::less<KeyFrame*>,
-        Eigen::aligned_allocator<std::pair<KeyFrame* const, g2o::Sim3> > > KeyFrameAndPose;
+    typedef pair<set<shared_ptr<KeyFrame>>,int> ConsistentGroup;    
+    typedef map<shared_ptr<KeyFrame>,g2o::Sim3,std::less<shared_ptr<KeyFrame>>,
+        Eigen::aligned_allocator<std::pair<shared_ptr<KeyFrame> const, g2o::Sim3> > > KeyFrameAndPose;
 
 public:
 
@@ -61,7 +61,7 @@ public:
     // Main function
     void Run();
 
-    void InsertKeyFrame(KeyFrame *pKF);
+    void InsertKeyFrame(shared_ptr<KeyFrame> pKF);
 
     void RequestReset();
     void RequestResetActiveMap(Map* pMap);
@@ -123,26 +123,26 @@ protected:
 
     //Methods to implement the new place recognition algorithm
     bool NewDetectCommonRegions();
-    bool DetectAndReffineSim3FromLastKF(KeyFrame* pCurrentKF, KeyFrame* pMatchedKF, g2o::Sim3 &gScw, int &nNumProjMatches,
-                                        std::vector<MapPoint*> &vpMPs, std::vector<MapPoint*> &vpMatchedMPs);
-    bool DetectCommonRegionsFromBoW(std::vector<KeyFrame*> &vpBowCand, KeyFrame* &pMatchedKF, KeyFrame* &pLastCurrentKF, g2o::Sim3 &g2oScw,
-                                     int &nNumCoincidences, std::vector<MapPoint*> &vpMPs, std::vector<MapPoint*> &vpMatchedMPs);
-    bool DetectCommonRegionsFromLastKF(KeyFrame* pCurrentKF, KeyFrame* pMatchedKF, g2o::Sim3 &gScw, int &nNumProjMatches,
-                                            std::vector<MapPoint*> &vpMPs, std::vector<MapPoint*> &vpMatchedMPs);
-    int FindMatchesByProjection(KeyFrame* pCurrentKF, KeyFrame* pMatchedKFw, g2o::Sim3 &g2oScw,
-                                set<MapPoint*> &spMatchedMPinOrigin, vector<MapPoint*> &vpMapPoints,
-                                vector<MapPoint*> &vpMatchedMapPoints);
+    bool DetectAndReffineSim3FromLastKF(shared_ptr<KeyFrame> pCurrentKF, shared_ptr<KeyFrame> pMatchedKF, g2o::Sim3 &gScw, int &nNumProjMatches,
+                                        std::vector<shared_ptr<MapPoint>> &vpMPs, std::vector<shared_ptr<MapPoint>> &vpMatchedMPs);
+    bool DetectCommonRegionsFromBoW(std::vector<shared_ptr<KeyFrame>> &vpBowCand, shared_ptr<KeyFrame> &pMatchedKF, shared_ptr<KeyFrame> &pLastCurrentKF, g2o::Sim3 &g2oScw,
+                                     int &nNumCoincidences, std::vector<shared_ptr<MapPoint>> &vpMPs, std::vector<shared_ptr<MapPoint>> &vpMatchedMPs);
+    bool DetectCommonRegionsFromLastKF(shared_ptr<KeyFrame> pCurrentKF, shared_ptr<KeyFrame> pMatchedKF, g2o::Sim3 &gScw, int &nNumProjMatches,
+                                            std::vector<shared_ptr<MapPoint>> &vpMPs, std::vector<shared_ptr<MapPoint>> &vpMatchedMPs);
+    int FindMatchesByProjection(shared_ptr<KeyFrame> pCurrentKF, shared_ptr<KeyFrame> pMatchedKFw, g2o::Sim3 &g2oScw,
+                                set<shared_ptr<MapPoint>> &spMatchedMPinOrigin, vector<shared_ptr<MapPoint>> &vpMapPoints,
+                                vector<shared_ptr<MapPoint>> &vpMatchedMapPoints);
 
 
-    void SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap, vector<MapPoint*> &vpMapPoints);
-    void SearchAndFuse(const vector<KeyFrame*> &vConectedKFs, vector<MapPoint*> &vpMapPoints);
+    void SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap, vector<shared_ptr<MapPoint>> &vpMapPoints);
+    void SearchAndFuse(const vector<shared_ptr<KeyFrame>> &vConectedKFs, vector<shared_ptr<MapPoint>> &vpMapPoints);
 
     void CorrectLoop();
 
     void MergeLocal();
     void MergeLocal2();
 
-    void CheckObservations(set<KeyFrame*> &spKFsMap1, set<KeyFrame*> &spKFsMap2);
+    void CheckObservations(set<shared_ptr<KeyFrame>> &spKFsMap1, set<shared_ptr<KeyFrame>> &spKFsMap2);
 
     void ResetIfRequested();
     bool mbResetRequested;
@@ -164,7 +164,7 @@ protected:
 
     LocalMapping *mpLocalMapper;
 
-    std::list<KeyFrame*> mlpLoopKeyFrameQueue;
+    std::list<shared_ptr<KeyFrame>> mlpLoopKeyFrameQueue;
 
     std::mutex mMutexLoopQueue;
 
@@ -172,14 +172,14 @@ protected:
     float mnCovisibilityConsistencyTh;
 
     // Loop detector variables
-    KeyFrame* mpCurrentKF;
-    KeyFrame* mpLastCurrentKF;
-    KeyFrame* mpMatchedKF;
+    shared_ptr<KeyFrame> mpCurrentKF;
+    shared_ptr<KeyFrame> mpLastCurrentKF;
+    shared_ptr<KeyFrame> mpMatchedKF;
     std::vector<ConsistentGroup> mvConsistentGroups;
-    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;
-    std::vector<KeyFrame*> mvpCurrentConnectedKFs;
-    std::vector<MapPoint*> mvpCurrentMatchedPoints;
-    std::vector<MapPoint*> mvpLoopMapPoints;
+    std::vector<shared_ptr<KeyFrame>> mvpEnoughConsistentCandidates;
+    std::vector<shared_ptr<KeyFrame>> mvpCurrentConnectedKFs;
+    std::vector<shared_ptr<MapPoint>> mvpCurrentMatchedPoints;
+    std::vector<shared_ptr<MapPoint>> mvpLoopMapPoints;
     cv::Mat mScw;
     g2o::Sim3 mg2oScw;
 
@@ -189,23 +189,23 @@ protected:
     bool mbLoopDetected;
     int mnLoopNumCoincidences;
     int mnLoopNumNotFound;
-    KeyFrame* mpLoopLastCurrentKF;
+    shared_ptr<KeyFrame> mpLoopLastCurrentKF;
     g2o::Sim3 mg2oLoopSlw;
     g2o::Sim3 mg2oLoopScw;
-    KeyFrame* mpLoopMatchedKF;
-    std::vector<MapPoint*> mvpLoopMPs;
-    std::vector<MapPoint*> mvpLoopMatchedMPs;
+    shared_ptr<KeyFrame> mpLoopMatchedKF;
+    std::vector<shared_ptr<MapPoint>> mvpLoopMPs;
+    std::vector<shared_ptr<MapPoint>> mvpLoopMatchedMPs;
     bool mbMergeDetected;
     int mnMergeNumCoincidences;
     int mnMergeNumNotFound;
-    KeyFrame* mpMergeLastCurrentKF;
+    shared_ptr<KeyFrame> mpMergeLastCurrentKF;
     g2o::Sim3 mg2oMergeSlw;
     g2o::Sim3 mg2oMergeSmw;
     g2o::Sim3 mg2oMergeScw;
-    KeyFrame* mpMergeMatchedKF;
-    std::vector<MapPoint*> mvpMergeMPs;
-    std::vector<MapPoint*> mvpMergeMatchedMPs;
-    std::vector<KeyFrame*> mvpMergeConnectedKFs;
+    shared_ptr<KeyFrame> mpMergeMatchedKF;
+    std::vector<shared_ptr<MapPoint>> mvpMergeMPs;
+    std::vector<shared_ptr<MapPoint>> mvpMergeMatchedMPs;
+    std::vector<shared_ptr<KeyFrame>> mvpMergeConnectedKFs;
 
     g2o::Sim3 mSold_new;
     //-------

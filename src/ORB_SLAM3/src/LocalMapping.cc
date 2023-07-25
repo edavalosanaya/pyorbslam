@@ -281,7 +281,7 @@ void LocalMapping::Run()
     SetFinish();
 }
 
-void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
+void LocalMapping::InsertKeyFrame(shared_ptr<KeyFrame> pKF)
 {
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
@@ -307,11 +307,11 @@ void LocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->ComputeBoW();
 
     // Associate MapPoints to the new keyframe and update normal and descriptor
-    const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    const vector<shared_ptr<MapPoint> > vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
 
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
-        MapPoint* pMP = vpMapPointMatches[i];
+        shared_ptr<MapPoint>  pMP = vpMapPointMatches[i];
         if(pMP)
         {
             if(!pMP->isBad())
@@ -346,7 +346,7 @@ void LocalMapping::EmptyQueue()
 void LocalMapping::MapPointCulling()
 {
     // Check Recent Added MapPoints
-    list<MapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
+    list<shared_ptr<MapPoint> >::iterator lit = mlpRecentAddedMapPoints.begin();
     const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
 
     int nThObs;
@@ -358,11 +358,13 @@ void LocalMapping::MapPointCulling()
 
     int borrar = mlpRecentAddedMapPoints.size();
 
+    Map* pMap = mpAtlas->GetCurrentMap();
     while(lit!=mlpRecentAddedMapPoints.end())
     {
-        MapPoint* pMP = *lit;
-
-        if(pMP->isBad())
+        shared_ptr<MapPoint>  pMP = *lit;
+        if(!pMP){
+            lit = mlpRecentAddedMapPoints.erase(lit);
+        }else if(pMP->isBad())
             lit = mlpRecentAddedMapPoints.erase(lit);
         else if(pMP->GetFoundRatio()<0.25f)
         {
@@ -392,15 +394,15 @@ void LocalMapping::CreateNewMapPoints()
     // For stereo inertial case
     if(mbMonocular)
         nn=30;
-    vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
+    vector<shared_ptr<KeyFrame> > vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
 
     if (mbInertial)
     {
-        KeyFrame* pKF = mpCurrentKeyFrame;
+        shared_ptr<KeyFrame>  pKF = mpCurrentKeyFrame;
         int count=0;
         while((vpNeighKFs.size()<=nn)&&(pKF->mPrevKF)&&(count++<nn))
         {
-            vector<KeyFrame*>::iterator it = std::find(vpNeighKFs.begin(), vpNeighKFs.end(), pKF->mPrevKF);
+            vector<shared_ptr<KeyFrame> >::iterator it = std::find(vpNeighKFs.begin(), vpNeighKFs.end(), pKF->mPrevKF);
             if(it==vpNeighKFs.end())
                 vpNeighKFs.push_back(pKF->mPrevKF);
             pKF = pKF->mPrevKF;
@@ -436,7 +438,7 @@ void LocalMapping::CreateNewMapPoints()
         if(i>0 && CheckNewKeyFrames())
             return;
 
-        KeyFrame* pKF2 = vpNeighKFs[i];
+        shared_ptr<KeyFrame>  pKF2 = vpNeighKFs[i];
 
         GeometricCamera* pCamera1 = mpCurrentKeyFrame->mpCamera, *pCamera2 = pKF2->mpCamera;
 
@@ -691,7 +693,7 @@ void LocalMapping::CreateNewMapPoints()
                 continue;
 
             // Triangulation is succesfull
-            MapPoint* pMP = new MapPoint(x3D, mpCurrentKeyFrame, mpAtlas->GetCurrentMap());
+            shared_ptr<MapPoint>  pMP = make_shared<MapPoint>(x3D, mpCurrentKeyFrame, mpAtlas->GetCurrentMap());
             if (bPointStereo)
                 countStereo++;
             
@@ -717,11 +719,11 @@ void LocalMapping::SearchInNeighbors()
     int nn = 10;
     if(mbMonocular)
         nn=30;
-    const vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
-    vector<KeyFrame*> vpTargetKFs;
-    for(vector<KeyFrame*>::const_iterator vit=vpNeighKFs.begin(), vend=vpNeighKFs.end(); vit!=vend; vit++)
+    const vector<shared_ptr<KeyFrame> > vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
+    vector<shared_ptr<KeyFrame> > vpTargetKFs;
+    for(vector<shared_ptr<KeyFrame> >::const_iterator vit=vpNeighKFs.begin(), vend=vpNeighKFs.end(); vit!=vend; vit++)
     {
-        KeyFrame* pKFi = *vit;
+        shared_ptr<KeyFrame>  pKFi = *vit;
         if(pKFi->isBad() || pKFi->mnFuseTargetForKF == mpCurrentKeyFrame->mnId)
             continue;
         vpTargetKFs.push_back(pKFi);
@@ -732,10 +734,10 @@ void LocalMapping::SearchInNeighbors()
     // Extend to some second neighbors if abort is not requested
     for(int i=0, imax=vpTargetKFs.size(); i<imax; i++)
     {
-        const vector<KeyFrame*> vpSecondNeighKFs = vpTargetKFs[i]->GetBestCovisibilityKeyFrames(20);
-        for(vector<KeyFrame*>::const_iterator vit2=vpSecondNeighKFs.begin(), vend2=vpSecondNeighKFs.end(); vit2!=vend2; vit2++)
+        const vector<shared_ptr<KeyFrame> > vpSecondNeighKFs = vpTargetKFs[i]->GetBestCovisibilityKeyFrames(20);
+        for(vector<shared_ptr<KeyFrame> >::const_iterator vit2=vpSecondNeighKFs.begin(), vend2=vpSecondNeighKFs.end(); vit2!=vend2; vit2++)
         {
-            KeyFrame* pKFi2 = *vit2;
+            shared_ptr<KeyFrame>  pKFi2 = *vit2;
             if(pKFi2->isBad() || pKFi2->mnFuseTargetForKF==mpCurrentKeyFrame->mnId || pKFi2->mnId==mpCurrentKeyFrame->mnId)
                 continue;
             vpTargetKFs.push_back(pKFi2);
@@ -748,7 +750,7 @@ void LocalMapping::SearchInNeighbors()
     // Extend to temporal neighbors
     if(mbInertial)
     {
-        KeyFrame* pKFi = mpCurrentKeyFrame->mPrevKF;
+        shared_ptr<KeyFrame>  pKFi = mpCurrentKeyFrame->mPrevKF;
         while(vpTargetKFs.size()<20 && pKFi)
         {
             if(pKFi->isBad() || pKFi->mnFuseTargetForKF==mpCurrentKeyFrame->mnId)
@@ -764,10 +766,10 @@ void LocalMapping::SearchInNeighbors()
 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
-    vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
-    for(vector<KeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
+    vector<shared_ptr<MapPoint> > vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    for(vector<shared_ptr<KeyFrame> >::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
-        KeyFrame* pKFi = *vit;
+        shared_ptr<KeyFrame>  pKFi = *vit;
 
         matcher.Fuse(pKFi,vpMapPointMatches);
         if(pKFi->NLeft != -1) matcher.Fuse(pKFi,vpMapPointMatches,true);
@@ -778,18 +780,18 @@ void LocalMapping::SearchInNeighbors()
         return;
 
     // Search matches by projection from target KFs in current KF
-    vector<MapPoint*> vpFuseCandidates;
+    vector<shared_ptr<MapPoint> > vpFuseCandidates;
     vpFuseCandidates.reserve(vpTargetKFs.size()*vpMapPointMatches.size());
 
-    for(vector<KeyFrame*>::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
+    for(vector<shared_ptr<KeyFrame> >::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
     {
-        KeyFrame* pKFi = *vitKF;
+        shared_ptr<KeyFrame>  pKFi = *vitKF;
 
-        vector<MapPoint*> vpMapPointsKFi = pKFi->GetMapPointMatches();
+        vector<shared_ptr<MapPoint> > vpMapPointsKFi = pKFi->GetMapPointMatches();
 
-        for(vector<MapPoint*>::iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
+        for(vector<shared_ptr<MapPoint> >::iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
         {
-            MapPoint* pMP = *vitMP;
+            shared_ptr<MapPoint>  pMP = *vitMP;
             if(!pMP)
                 continue;
             if(pMP->isBad() || pMP->mnFuseCandidateForKF == mpCurrentKeyFrame->mnId)
@@ -807,7 +809,7 @@ void LocalMapping::SearchInNeighbors()
     vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     for(size_t i=0, iend=vpMapPointMatches.size(); i<iend; i++)
     {
-        MapPoint* pMP=vpMapPointMatches[i];
+        shared_ptr<MapPoint>  pMP=vpMapPointMatches[i];
         if(pMP)
         {
             if(!pMP->isBad())
@@ -863,8 +865,8 @@ void LocalMapping::Release()
         return;
     mbStopped = false;
     mbStopRequested = false;
-    for(list<KeyFrame*>::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
-        delete *lit;
+    for(list<shared_ptr<KeyFrame> >::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
+        (*lit).reset();
     mlNewKeyFrames.clear();
 
     cout << "Local Mapping RELEASE" << endl;
@@ -907,7 +909,7 @@ void LocalMapping::KeyFrameCulling()
     // We only consider close stereo points
     const int Nd = 21;
     mpCurrentKeyFrame->UpdateBestCovisibles();
-    vector<KeyFrame*> vpLocalKeyFrames = mpCurrentKeyFrame->GetVectorCovisibleKeyFrames();
+    vector<shared_ptr<KeyFrame> > vpLocalKeyFrames = mpCurrentKeyFrame->GetVectorCovisibleKeyFrames();
 
     float redundant_th;
     if(!mbInertial)
@@ -925,7 +927,7 @@ void LocalMapping::KeyFrameCulling()
     if (mbInertial)
     {
         int count = 0;
-        KeyFrame* aux_KF = mpCurrentKeyFrame;
+        shared_ptr<KeyFrame>  aux_KF = mpCurrentKeyFrame;
         while(count<Nd && aux_KF->mPrevKF)
         {
             aux_KF = aux_KF->mPrevKF;
@@ -936,14 +938,14 @@ void LocalMapping::KeyFrameCulling()
 
 
 
-    for(vector<KeyFrame*>::iterator vit=vpLocalKeyFrames.begin(), vend=vpLocalKeyFrames.end(); vit!=vend; vit++)
+    for(vector<shared_ptr<KeyFrame> >::iterator vit=vpLocalKeyFrames.begin(), vend=vpLocalKeyFrames.end(); vit!=vend; vit++)
     {
         count++;
-        KeyFrame* pKF = *vit;
+        shared_ptr<KeyFrame>  pKF = *vit;
 
         if((pKF->mnId==pKF->GetMap()->GetInitKFid()) || pKF->isBad())
             continue;
-        const vector<MapPoint*> vpMapPoints = pKF->GetMapPointMatches();
+        const vector<shared_ptr<MapPoint> > vpMapPoints = pKF->GetMapPointMatches();
 
         int nObs = 3;
         const int thObs=nObs;
@@ -951,7 +953,7 @@ void LocalMapping::KeyFrameCulling()
         int nMPs=0;
         for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
         {
-            MapPoint* pMP = vpMapPoints[i];
+            shared_ptr<MapPoint>  pMP = vpMapPoints[i];
             if(pMP)
             {
                 if(!pMP->isBad())
@@ -968,11 +970,11 @@ void LocalMapping::KeyFrameCulling()
                         const int &scaleLevel = (pKF -> NLeft == -1) ? pKF->mvKeysUn[i].octave
                                                                      : (i < pKF -> NLeft) ? pKF -> mvKeys[i].octave
                                                                                           : pKF -> mvKeysRight[i].octave;
-                        const map<KeyFrame*, tuple<int,int>> observations = pMP->GetObservations();
+                        const map<shared_ptr<KeyFrame> , tuple<int,int>> observations = pMP->GetObservations();
                         int nObs=0;
-                        for(map<KeyFrame*, tuple<int,int>>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+                        for(map<shared_ptr<KeyFrame> , tuple<int,int>>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {
-                            KeyFrame* pKFi = mit->first;
+                            shared_ptr<KeyFrame>  pKFi = mit->first;
                             if(pKFi==pKF)
                                 continue;
                             tuple<int,int> indexes = mit->second;
@@ -1026,8 +1028,8 @@ void LocalMapping::KeyFrameCulling()
                         pKF->mNextKF->mpImuPreintegrated->MergePrevious(pKF->mpImuPreintegrated);
                         pKF->mNextKF->mPrevKF = pKF->mPrevKF;
                         pKF->mPrevKF->mNextKF = pKF->mNextKF;
-                        pKF->mNextKF = NULL;
-                        pKF->mPrevKF = NULL;
+                        pKF->mNextKF.reset();
+                        pKF->mPrevKF.reset();
                         pKF->SetBadFlag();
                     }
                     else if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2() && ((pKF->GetImuPosition()-pKF->mPrevKF->GetImuPosition()).norm()<0.02) && (t<3))
@@ -1035,8 +1037,8 @@ void LocalMapping::KeyFrameCulling()
                         pKF->mNextKF->mpImuPreintegrated->MergePrevious(pKF->mpImuPreintegrated);
                         pKF->mNextKF->mPrevKF = pKF->mPrevKF;
                         pKF->mPrevKF->mNextKF = pKF->mNextKF;
-                        pKF->mNextKF = NULL;
-                        pKF->mPrevKF = NULL;
+                        pKF->mNextKF.reset();
+                        pKF->mPrevKF.reset();
                         pKF->SetBadFlag();
                     }
                 }
@@ -1159,7 +1161,7 @@ bool LocalMapping::CheckFinish()
 void LocalMapping::SetFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
-    mbFinished = true;    
+    mbFinished = true;
     unique_lock<mutex> lock2(mMutexStop);
     mbStopped = true;
 }
@@ -1193,15 +1195,15 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         return;
 
     // Retrieve all keyframe in temporal order
-    list<KeyFrame*> lpKF;
-    KeyFrame* pKF = mpCurrentKeyFrame;
+    list<shared_ptr<KeyFrame> > lpKF;
+    shared_ptr<KeyFrame>  pKF = mpCurrentKeyFrame;
     while(pKF->mPrevKF)
     {
         lpKF.push_front(pKF);
         pKF = pKF->mPrevKF;
     }
     lpKF.push_front(pKF);
-    vector<KeyFrame*> vpKF(lpKF.begin(),lpKF.end());
+    vector<shared_ptr<KeyFrame> > vpKF(lpKF.begin(),lpKF.end());
 
     if(vpKF.size()<nMinKF)
         return;
@@ -1228,7 +1230,7 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         Eigen::Matrix3f Rwg;
         Eigen::Vector3f dirG;
         dirG.setZero();
-        for(vector<KeyFrame*>::iterator itKF = vpKF.begin(); itKF!=vpKF.end(); itKF++)
+        for(vector<shared_ptr<KeyFrame> >::iterator itKF = vpKF.begin(); itKF!=vpKF.end(); itKF++)
         {
             if (!(*itKF)->mpImuPreintegrated)
                 continue;
@@ -1287,7 +1289,7 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         // Check if initialization OK
         if (!mpAtlas->isImuInitialized())
             for (int i = 0; i < N; i++) {
-                KeyFrame *pKF2 = vpKF[i];
+                shared_ptr<KeyFrame> pKF2 = vpKF[i];
                 pKF2->bImu = true;
             }
     }
@@ -1327,16 +1329,16 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
     }
 
     // Correct keyframes starting at map first keyframe
-    list<KeyFrame*> lpKFtoCheck(mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.begin(),mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.end());
+    list<shared_ptr<KeyFrame> > lpKFtoCheck(mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.begin(),mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.end());
 
     while(!lpKFtoCheck.empty())
     {
-        KeyFrame* pKF = lpKFtoCheck.front();
-        const set<KeyFrame*> sChilds = pKF->GetChilds();
+        shared_ptr<KeyFrame>  pKF = lpKFtoCheck.front();
+        const set<shared_ptr<KeyFrame> > sChilds = pKF->GetChilds();
         Sophus::SE3f Twc = pKF->GetPoseInverse();
-        for(set<KeyFrame*>::const_iterator sit=sChilds.begin();sit!=sChilds.end();sit++)
+        for(set<shared_ptr<KeyFrame> >::const_iterator sit=sChilds.begin();sit!=sChilds.end();sit++)
         {
-            KeyFrame* pChild = *sit;
+            shared_ptr<KeyFrame>  pChild = *sit;
             if(!pChild || pChild->isBad())
                 continue;
 
@@ -1376,11 +1378,11 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
     }
 
     // Correct MapPoints
-    const vector<MapPoint*> vpMPs = mpAtlas->GetCurrentMap()->GetAllMapPoints();
+    const vector<shared_ptr<MapPoint> > vpMPs = mpAtlas->GetCurrentMap()->GetAllMapPoints();
 
     for(size_t i=0; i<vpMPs.size(); i++)
     {
-        MapPoint* pMP = vpMPs[i];
+        shared_ptr<MapPoint>  pMP = vpMPs[i];
 
         if(pMP->isBad())
             continue;
@@ -1393,7 +1395,7 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         else
         {
             // Update according to the correction of its reference keyframe
-            KeyFrame* pRefKF = pMP->GetReferenceKeyFrame();
+            shared_ptr<KeyFrame>  pRefKF = pMP->GetReferenceKeyFrame();
 
             if(pRefKF->mnBAGlobalForKF!=GBAid)
                 continue;
@@ -1411,10 +1413,10 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
     mnKFs=vpKF.size();
     mIdxInit++;
 
-    for(list<KeyFrame*>::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
+    for(list<shared_ptr<KeyFrame> >::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
     {
         (*lit)->SetBadFlag();
-        delete *lit;
+        (*lit).reset();
     }
     mlNewKeyFrames.clear();
 
@@ -1435,15 +1437,15 @@ void LocalMapping::ScaleRefinement()
         return;
 
     // Retrieve all keyframes in temporal order
-    list<KeyFrame*> lpKF;
-    KeyFrame* pKF = mpCurrentKeyFrame;
+    list<shared_ptr<KeyFrame> > lpKF;
+    shared_ptr<KeyFrame>  pKF = mpCurrentKeyFrame;
     while(pKF->mPrevKF)
     {
         lpKF.push_front(pKF);
         pKF = pKF->mPrevKF;
     }
     lpKF.push_front(pKF);
-    vector<KeyFrame*> vpKF(lpKF.begin(),lpKF.end());
+    vector<shared_ptr<KeyFrame> > vpKF(lpKF.begin(),lpKF.end());
 
     while(CheckNewKeyFrames())
     {
@@ -1480,10 +1482,10 @@ void LocalMapping::ScaleRefinement()
     }
     std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
 
-    for(list<KeyFrame*>::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
+    for(list<shared_ptr<KeyFrame> >::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
     {
         (*lit)->SetBadFlag();
-        delete *lit;
+        (*lit).reset();
     }
     mlNewKeyFrames.clear();
 
@@ -1514,7 +1516,7 @@ double LocalMapping::GetCurrKFTime()
         return 0.0;
 }
 
-KeyFrame* LocalMapping::GetCurrKF()
+shared_ptr<KeyFrame>  LocalMapping::GetCurrKF()
 {
     return mpCurrentKeyFrame;
 }

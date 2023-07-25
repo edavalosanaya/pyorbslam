@@ -367,7 +367,7 @@ unsigned int ORBSlamPython::getNumMatches() const
         }
         for (unsigned int i = 0; i < num; ++i)
         {
-            ORB_SLAM3::MapPoint *pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
+            std::shared_ptr<ORB_SLAM3::MapPoint> pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
             if (pMP && !pTracker->mCurrentFrame.mvbOutlier[i] && pMP->Observations() > 0)
             {
                 ++matches;
@@ -386,7 +386,7 @@ boost::python::list ORBSlamPython::getKeyframePoints() const
     }
 
     // This is copied from the ORB_SLAM3 System.SaveKeyFrameTrajectoryTUM function, with some changes to output a python tuple.
-    vector<ORB_SLAM3::KeyFrame *> vpKFs = system->GetKeyFrames();
+    vector<std::shared_ptr<ORB_SLAM3::KeyFrame> > vpKFs = system->GetKeyFrames();
     std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM3::KeyFrame::lId);
 
     // Transform all keyframes so that the first keyframe is at the origin.
@@ -397,7 +397,7 @@ boost::python::list ORBSlamPython::getKeyframePoints() const
 
     for (size_t i = 0; i < vpKFs.size(); i++)
     {
-        ORB_SLAM3::KeyFrame *pKF = vpKFs[i];
+        std::shared_ptr<ORB_SLAM3::KeyFrame> pKF = vpKFs[i];
 
         // pKF->SetPose(pKF->GetPose()*Two);
 
@@ -428,7 +428,7 @@ boost::python::list ORBSlamPython::getTrackedMappoints() const
     }
 
     // This is copied from the ORB_SLAM3 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
-    vector<ORB_SLAM3::MapPoint *> Mps = system->GetTrackedMapPoints();
+    vector<std::shared_ptr<ORB_SLAM3::MapPoint> > Mps = system->GetTrackedMapPoints();
 
     boost::python::list map_points;
     for (size_t i = 0; i < Mps.size(); i++)
@@ -465,7 +465,7 @@ boost::python::list ORBSlamPython::getCurrentPoints() const
         }
         for (unsigned int i = 0; i < num; ++i)
         {
-            ORB_SLAM3::MapPoint *pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
+            std::shared_ptr<ORB_SLAM3::MapPoint> pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
             if (pMP && !pTracker->mCurrentFrame.mvbOutlier[i] && pMP->Observations() > 0)
             {
                 cv::Mat wp = ORB_SLAM3::Converter::toCvMat(pMP->GetWorldPos());
@@ -523,7 +523,7 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     }
 
     // This is copied from the ORB_SLAM3 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
-    vector<ORB_SLAM3::KeyFrame *> vpKFs = system->GetKeyFrames();
+    vector<std::shared_ptr<ORB_SLAM3::KeyFrame> > vpKFs = system->GetKeyFrames();
     std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM3::KeyFrame::lId);
 
     // Transform all keyframes so that the first keyframe is at the origin.
@@ -543,17 +543,17 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
 
     // For each frame we have a reference keyframe (lRit), the timestamp (lT) and a flag
     // which is true when tracking failed (lbL).
-    std::list<ORB_SLAM3::KeyFrame *>::iterator lRit = system->GetTracker()->mlpReferences.begin();
+    std::list<std::shared_ptr<ORB_SLAM3::KeyFrame> >::iterator lRit = system->GetTracker()->mlpReferences.begin();
     std::list<double>::iterator lT = system->GetTracker()->mlFrameTimes.begin();
     for (std::list<Sophus::SE3f>::iterator lit = system->GetTracker()->mlRelativeFramePoses.begin(), lend = system->GetTracker()->mlRelativeFramePoses.end(); lit != lend; lit++, lRit++, lT++)
     {
-        ORB_SLAM3::KeyFrame *pKF = *lRit;
+        std::shared_ptr<ORB_SLAM3::KeyFrame> pKF = *lRit;
 
         cv::Mat Trw = cv::Mat::eye(4, 4, CV_32F);
 
         while (pKF != NULL && pKF->isBad())
         {
-            ORB_SLAM3::KeyFrame *pKFParent;
+            std::shared_ptr<ORB_SLAM3::KeyFrame> pKFParent;
 
             // std::cout << "bad parent" << std::endl;
             Trw = Trw * ORB_SLAM3::Converter::toCvMat(pKF->mTcp.matrix());
@@ -603,7 +603,7 @@ boost::python::list ORBSlamPython::getCurrentMapPoints() const
 
     // This is copied from the ORB_SLAM3 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
     ORB_SLAM3::Atlas *mpAtlas = system->GetAtlas();
-    vector<ORB_SLAM3::MapPoint *> Mps = mpAtlas->GetAllMapPoints();
+    vector<std::shared_ptr<ORB_SLAM3::MapPoint> > Mps = mpAtlas->GetAllMapPoints();
 
     boost::python::list map_points;
     for (size_t i = 0; i < Mps.size(); i++)

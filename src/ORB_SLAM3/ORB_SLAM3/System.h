@@ -174,11 +174,11 @@ public:
     // Information from most recent processed frame
     // You can call this right after TrackMonocular (or stereo or RGBD)
     int GetTrackingState();
-    std::vector<MapPoint*> GetTrackedMapPoints();
+    std::vector<shared_ptr<MapPoint> > GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
     // Added for the Python bindings
-    vector<KeyFrame*> GetKeyFrames() const;
+    vector<shared_ptr<KeyFrame>> GetKeyFrames() const;
     Tracking* GetTracker() const;
     Atlas* GetAtlas() const;
 
@@ -256,7 +256,7 @@ private:
 
     // Tracking state
     int mTrackingState;
-    std::vector<MapPoint*> mTrackedMapPoints;
+    std::vector<shared_ptr<MapPoint> > mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
 

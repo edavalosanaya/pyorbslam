@@ -88,8 +88,8 @@ public:
     // Use this function if you have deactivated local mapping and you only want to localize the camera.
     void InformOnlyTracking(const bool &flag);
 
-    void UpdateFrameIMU(const float s, const IMU::Bias &b, KeyFrame* pCurrentKeyFrame);
-    KeyFrame* GetLastKeyFrame()
+    void UpdateFrameIMU(const float s, const IMU::Bias &b, shared_ptr<KeyFrame> pCurrentKeyFrame);
+    shared_ptr<KeyFrame> GetLastKeyFrame()
     {
         return mpLastKeyFrame;
     }
@@ -150,7 +150,7 @@ public:
     // Lists used to recover the full camera trajectory at the end of the execution.
     // Basically we store the reference keyframe for each frame and its relative transformation
     list<Sophus::SE3f> mlRelativeFramePoses;
-    list<KeyFrame*> mlpReferences;
+    list<shared_ptr<KeyFrame>> mlpReferences;
     list<double> mlFrameTimes;
     list<bool> mlbLost;
 
@@ -177,7 +177,7 @@ public:
     bool mFastInit = false;
 
 
-    vector<MapPoint*> GetLocalMapMPS();
+    vector<shared_ptr<MapPoint>> GetLocalMapMPS();
 
     bool mbWriteStats;
 
@@ -237,7 +237,7 @@ protected:
     bool mbMapUpdated;
 
     // Imu preintegration from last frame
-    IMU::Preintegrated *mpImuPreintegratedFromLastKF;
+    shared_ptr<IMU::Preintegrated> mpImuPreintegratedFromLastKF;
 
     // Queue of IMU measurements between frames
     std::list<IMU::Point> mlQueueImuData;
@@ -275,9 +275,9 @@ protected:
     bool mbSetInit;
 
     //Local Map
-    KeyFrame* mpReferenceKF;
-    std::vector<KeyFrame*> mvpLocalKeyFrames;
-    std::vector<MapPoint*> mvpLocalMapPoints;
+    shared_ptr<KeyFrame> mpReferenceKF;
+    std::vector<shared_ptr<KeyFrame>> mvpLocalKeyFrames;
+    std::vector<shared_ptr<MapPoint>> mvpLocalMapPoints;
     
     // System
     System* mpSystem;
@@ -318,7 +318,7 @@ protected:
     int mnMatchesInliers;
 
     //Last Frame, KeyFrame and Relocalisation Info
-    KeyFrame* mpLastKeyFrame;
+    shared_ptr<KeyFrame> mpLastKeyFrame;
     unsigned int mnLastKeyFrameId;
     unsigned int mnLastRelocFrameId;
     double mTimeStampLost;
@@ -337,7 +337,7 @@ protected:
     //Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;
 
-    list<MapPoint*> mlpTemporalPoints;
+    list<shared_ptr<MapPoint>> mlpTemporalPoints;
 
     //int nMapChangeIndex;
 

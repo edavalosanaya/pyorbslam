@@ -60,26 +60,26 @@ public:
     KeyFrameDatabase(){}
     KeyFrameDatabase(const ORBVocabulary &voc);
 
-    void add(KeyFrame* pKF);
+    void add(shared_ptr<KeyFrame> pKF);
 
-    void erase(KeyFrame* pKF);
+    void erase(shared_ptr<KeyFrame> pKF);
 
     void clear();
     void clearMap(Map* pMap);
 
     // Loop Detection(DEPRECATED)
-    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
+    std::vector<shared_ptr<KeyFrame> > DetectLoopCandidates(shared_ptr<KeyFrame> pKF, float minScore);
 
     // Loop and Merge Detection
-    void DetectCandidates(KeyFrame* pKF, float minScore,vector<KeyFrame*>& vpLoopCand, vector<KeyFrame*>& vpMergeCand);
-    void DetectBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nMinWords);
-    void DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nNumCandidates);
+    void DetectCandidates(shared_ptr<KeyFrame> pKF, float minScore,vector<shared_ptr<KeyFrame>>& vpLoopCand, vector<shared_ptr<KeyFrame>>& vpMergeCand);
+    void DetectBestCandidates(shared_ptr<KeyFrame> pKF, vector<shared_ptr<KeyFrame>> &vpLoopCand, vector<shared_ptr<KeyFrame>> &vpMergeCand, int nMinWords);
+    void DetectNBestCandidates(shared_ptr<KeyFrame> pKF, vector<shared_ptr<KeyFrame>> &vpLoopCand, vector<shared_ptr<KeyFrame>> &vpMergeCand, int nNumCandidates);
 
     // Relocalization
-    std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F, Map* pMap);
+    std::vector<shared_ptr<KeyFrame>> DetectRelocalizationCandidates(Frame* F, Map* pMap);
 
     void PreSave();
-    void PostLoad(map<long unsigned int, KeyFrame*> mpKFid);
+    void PostLoad(map<long unsigned int, shared_ptr<KeyFrame>> mpKFid);
     void SetORBVocabulary(ORBVocabulary* pORBVoc);
 
 protected:
@@ -88,7 +88,7 @@ protected:
    const ORBVocabulary* mpVoc;
 
    // Inverted file
-   std::vector<list<KeyFrame*> > mvInvertedFile;
+   std::vector<list<shared_ptr<KeyFrame>>> mvInvertedFile;
 
    // For save relation without pointer, this is necessary for save/load function
    std::vector<list<long unsigned int> > mvBackupInvertedFileId;

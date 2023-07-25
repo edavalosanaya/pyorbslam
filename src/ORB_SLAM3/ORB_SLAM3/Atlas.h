@@ -84,16 +84,14 @@ public:
     void SetViewer(Viewer* pViewer);
 
     // Method for change components in the current map
-    void AddKeyFrame(KeyFrame* pKF);
-    void AddMapPoint(MapPoint* pMP);
-    //void EraseMapPoint(MapPoint* pMP);
-    //void EraseKeyFrame(KeyFrame* pKF);
+    void AddKeyFrame(shared_ptr<KeyFrame>  pKF);
+    void AddMapPoint(shared_ptr<MapPoint> pMP);
 
     GeometricCamera* AddCamera(GeometricCamera* pCam);
     std::vector<GeometricCamera*> GetAllCameras();
 
     /* All methods without Map pointer work on current map */
-    void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
+    void SetReferenceMapPoints(const std::vector<shared_ptr<MapPoint>> &vpMPs);
     void InformNewBigChange();
     int GetLastBigChangeIdx();
 
@@ -101,9 +99,9 @@ public:
     long unsigned KeyFramesInMap();
 
     // Method for get data in current map
-    std::vector<KeyFrame*> GetAllKeyFrames();
-    std::vector<MapPoint*> GetAllMapPoints();
-    std::vector<MapPoint*> GetReferenceMapPoints();
+    std::vector<shared_ptr<KeyFrame> > GetAllKeyFrames();
+    std::vector<shared_ptr<MapPoint>> GetAllMapPoints();
+    std::vector<shared_ptr<MapPoint>> GetReferenceMapPoints();
 
     vector<Map*> GetAllMaps();
 
@@ -127,7 +125,7 @@ public:
     void PreSave();
     void PostLoad();
 
-    map<long unsigned int, KeyFrame*> GetAtlasKeyframes();
+    map<long unsigned int, shared_ptr<KeyFrame>> GetAtlasKeyframes();
 
     void SetKeyFrameDababase(KeyFrameDatabase* pKFDB);
     KeyFrameDatabase* GetKeyFrameDatabase();

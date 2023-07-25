@@ -52,7 +52,7 @@
 
 
 namespace ORB_SLAM3 {
-    MLPnPsolver::MLPnPsolver(const Frame &F, const vector<MapPoint *> &vpMapPointMatches):
+    MLPnPsolver::MLPnPsolver(const Frame &F, const vector<shared_ptr<MapPoint>> &vpMapPointMatches):
             mnInliersi(0), mnIterations(0), mnBestInliers(0), N(0), mpCamera(F.mpCamera){
         mvpMapPointMatches = vpMapPointMatches;
         mvBearingVecs.reserve(F.mvpMapPoints.size());
@@ -64,7 +64,7 @@ namespace ORB_SLAM3 {
 
         int idx = 0;
         for(size_t i = 0, iend = mvpMapPointMatches.size(); i < iend; i++){
-            MapPoint* pMP = vpMapPointMatches[i];
+            shared_ptr<MapPoint> pMP = vpMapPointMatches[i];
 
             if(pMP){
                 if(!pMP -> isBad()){
