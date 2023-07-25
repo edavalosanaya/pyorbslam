@@ -41,7 +41,7 @@ class KeyFrame;
 class Map;
 class Frame;
 
-class MapPoint
+class MapPoint : public enable_shared_from_this<MapPoint>
 {
 
     friend class boost::serialization::access;

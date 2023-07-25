@@ -96,7 +96,7 @@ for i in tqdm.tqdm(range(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
             data['point cloud'] = slam.get_current_map_points()
         
             # Save data
-            # pyorbslam.tools.record_slam_data(i, slam, OUTPUTS_DIR / '220113', save_rate=10)
+            pyorbslam.tools.record_slam_data(i, slam, OUTPUTS_DIR / '220113', save_rate=10)
 
     else:
     
@@ -133,11 +133,12 @@ for i in tqdm.tqdm(range(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
                 screen = cv2.circle(screen, screen_fix, 10, (0,0,255), 3)
 
         # Visualize
-        # drawer.plot_line(gaze_vector, color=(1.0, 0.0, 0.0, 1.0))
-        # drawer.plot_image(imutils.resize(np.concatenate([draw_frame, screen], axis=0), width=500))
-        # drawer.plot_trajectory(data['pose'])
-        # if 'point cloud' in data:
-        #     drawer.plot_pointcloud('pc', data['point cloud'])
+        drawer.plot_line(gaze_vector, color=(1.0, 0.0, 0.0, 1.0))
+        drawer.plot_image(imutils.resize(np.concatenate([draw_frame, screen], axis=0), width=500))
+        drawer.plot_trajectory(data['pose'])
+        logger.debug(data['point cloud'].shape)
+        if 'point cloud' in data:
+            drawer.plot_pointcloud('pc', data['point cloud'])
 
     # Update
     i += 1

@@ -27,6 +27,9 @@
 
 #include<ORB_SLAM3/System.h>
 
+/* #define DEBUG_NEW new(__FILE__, __LINE__) */
+/* #define new DEBUG_NEW */
+
 /*
 Tracking.h
 
@@ -46,7 +49,7 @@ enum eTrackingState{
 
 using namespace std;
 
-void LoadImages(const string &strImagePath, const string &strPathTimes,
+void LoadImages(int length, const string &strImagePath, const string &strPathTimes,
                 vector<string> &vstrImages, vector<double> &vTimeStamps);
 
 TEST(ORBSLAM3Test, TestMonocularSLAM) {
@@ -57,14 +60,24 @@ TEST(ORBSLAM3Test, TestMonocularSLAM) {
     std::filesystem::path IMAGE_DATA_DIR = currentPath / "../../test/data/EuRoC/MH01/mav0/cam0/data";
     std::filesystem::path TIMESTAMP_FILE = currentPath / "../../test/data/EuRoC/timestamps.txt";
 
+    std::cout << "Current Path: " << currentPath << std::endl;
+    std::cout << "VOCAB_PATH: " << VOCAB_PATH << std::endl;
+    std::cout << "SETTINGS_FILE: " << SETTINGS_FILE << std::endl;
+    std::cout << "IMAGE_DATA_DIR: " << IMAGE_DATA_DIR << std::endl;
+    std::cout << "TIMESTAMP_FILE: " << TIMESTAMP_FILE << std::endl;
+
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     ORB_SLAM3::System SLAM(VOCAB_PATH.string(), SETTINGS_FILE.string(), ORB_SLAM3::System::MONOCULAR, false);
     float imageScale = SLAM.GetImageScale();
+    cout << "SLAM LOADED!" << endl;
+
+    // Select the number of images
+    int length = 30;
 
     // Load the images
     vector<string> strImageFilenames;
     vector<double> timestampsCam;
-    LoadImages(IMAGE_DATA_DIR.string(), TIMESTAMP_FILE.string(), strImageFilenames, timestampsCam);
+    LoadImages(length, IMAGE_DATA_DIR.string(), TIMESTAMP_FILE.string(), strImageFilenames, timestampsCam);
     cout << "EuRoC Dataset LOADED!" << endl;
 
     // Main loop
@@ -72,7 +85,7 @@ TEST(ORBSLAM3Test, TestMonocularSLAM) {
     int proccIm = 0;
     /* for(int ni=0; ni<strImageFilenames.size(); ni++, proccIm++){ */
     /* int length = strImageFilenames.size(); */
-    int length = 100;
+    cout << "Starting!" << endl;
     for(int ni=0; ni<length; ni++, proccIm++){
         cout << "Processing " << ni << "/" << length << endl;
 
@@ -109,10 +122,11 @@ TEST(ORBSLAM3Test, TestMonocularSLAM) {
     SLAM.Shutdown();
 }
 
-void LoadImages(const string &strImagePath, const string &strPathTimes,
+void LoadImages(int length, const string &strImagePath, const string &strPathTimes,
                 vector<string> &vstrImages, vector<double> &vTimeStamps)
 {
     ifstream fTimes;
+    int counter = 0;
     fTimes.open(strPathTimes.c_str());
     vTimeStamps.reserve(5000);
     vstrImages.reserve(5000);
@@ -130,5 +144,9 @@ void LoadImages(const string &strImagePath, const string &strPathTimes,
             vTimeStamps.push_back(t*1e-9);
 
         }
+
+        cout << "Loading image " << std::to_string(counter) << "/" << std::to_string(length) << endl;
+        if (counter >= length) break;
+        counter += 1;
     }
 }

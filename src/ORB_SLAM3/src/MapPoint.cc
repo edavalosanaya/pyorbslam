@@ -236,14 +236,14 @@ void MapPoint::SetBadFlag()
     }
 
     // mpMap->EraseMapPoint(this);
-    // shared_ptr<MapPoint> pThis = shared_from_this();
-    // mpMap->EraseMapPoint(pThis);
-    // {
-    //     unique_lock<mutex> lock1(mMutexFeatures);
-    //     unique_lock<mutex> lock2(mMutexPos);
-    //     mpRefKF.reset();
-    //     mpReplaced.reset();
-    // }
+    shared_ptr<MapPoint> pThis = shared_from_this();
+    mpMap->EraseMapPoint(pThis);
+    {
+        unique_lock<mutex> lock1(mMutexFeatures);
+        unique_lock<mutex> lock2(mMutexPos);
+        mpRefKF.reset();
+        mpReplaced.reset();
+    }
 }
 
 shared_ptr<MapPoint> MapPoint::GetReplaced()
@@ -305,14 +305,14 @@ void MapPoint::Replace(shared_ptr<MapPoint> pMP)
     pMP->ComputeDistinctiveDescriptors();
 
     // mpMap->EraseMapPoint(this);
-    // shared_ptr<MapPoint> pThis = shared_from_this();
-    // mpMap->EraseMapPoint(pMP);
-    // {
-    //     unique_lock<mutex> lock1(mMutexFeatures);
-    //     unique_lock<mutex> lock2(mMutexPos);
-    //     mpRefKF.reset();
-    //     mpReplaced.reset();
-    // }
+    shared_ptr<MapPoint> pThis = shared_from_this();
+    mpMap->EraseMapPoint(pMP);
+    {
+        unique_lock<mutex> lock1(mMutexFeatures);
+        unique_lock<mutex> lock2(mMutexPos);
+        mpRefKF.reset();
+        mpReplaced.reset();
+    }
 }
 
 bool MapPoint::isBad()
