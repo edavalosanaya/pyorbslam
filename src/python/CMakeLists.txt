@@ -27,7 +27,7 @@ find_package(PythonInterp 3)
 find_package(PythonLibs)
 
 execute_process(
-    COMMAND ${Python_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
+    COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )

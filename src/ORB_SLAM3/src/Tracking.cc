@@ -1449,8 +1449,6 @@ bool Tracking::GetStepByStep()
     return bStepByStep;
 }
 
-
-
 Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp, string filename)
 {
     mImGray = imRectLeft;
@@ -1506,7 +1504,6 @@ Sophus::SE3f Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat 
     return mCurrentFrame.GetPose();
 }
 
-
 Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp, string filename)
 {
     mImGray = imRGB;
@@ -1546,7 +1543,6 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 
     return mCurrentFrame.GetPose();
 }
-
 
 Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp, string filename)
 {
@@ -1598,7 +1594,6 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
     
     return mCurrentFrame.GetPose();
 }
-
 
 void Tracking::GrabImuData(const IMU::Point &imuMeasurement)
 {
@@ -1719,7 +1714,6 @@ void Tracking::PreintegrateIMU()
     //Verbose::PrintMess("Preintegration is finished!! ", Verbose::VERBOSITY_DEBUG);
 }
 
-
 bool Tracking::PredictStateIMU()
 {
     if(!mCurrentFrame.mpPrevFrame)
@@ -1774,7 +1768,6 @@ void Tracking::ResetFrameIMU()
 {
     // TODO To implement...
 }
-
 
 void Tracking::Track()
 {
@@ -2313,7 +2306,6 @@ void Tracking::Track()
 #endif
 }
 
-
 void Tracking::StereoInitialization()
 {
     if(mCurrentFrame.N>500)
@@ -2424,7 +2416,6 @@ void Tracking::StereoInitialization()
     }
 }
 
-
 void Tracking::MonocularInitialization()
 {
 
@@ -2500,8 +2491,6 @@ void Tracking::MonocularInitialization()
         }
     }
 }
-
-
 
 void Tracking::CreateInitialMapMonocular()
 {
@@ -2637,7 +2626,6 @@ void Tracking::CreateInitialMapMonocular()
     initID = pKFcur->mnId;
 }
 
-
 void Tracking::CreateMapInAtlas()
 {
     mnLastInitFrameId = mCurrentFrame.mnId;
@@ -2693,7 +2681,6 @@ void Tracking::CheckReplacedInLastFrame()
         }
     }
 }
-
 
 bool Tracking::TrackReferenceKeyFrame()
 {
@@ -3420,7 +3407,6 @@ void Tracking::UpdateLocalPoints()
     }
 }
 
-
 void Tracking::UpdateLocalKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
@@ -3896,7 +3882,7 @@ void Tracking::ResetActiveMap(bool bLocMap)
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
 
-    vector<shared_ptr<MapPoint>> Tracking::GetLocalMapMPS()
+vector<shared_ptr<MapPoint>> Tracking::GetLocalMapMPS()
 {
     return mvpLocalMapPoints;
 }

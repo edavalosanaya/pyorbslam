@@ -6,9 +6,14 @@ set(CMAKE_DEBUG TRUE)
 
 if(NOT CMAKE_DEBUG)
     # Release has CPU/Memory optimizations, but won't provide debugging info
-    set(CMAKE_BUILD_TYPE Release)
+    # set(CMAKE_BUILD_TYPE Release) # causes errors
+    set(CMAKE_BUILD_TYPE Debug) 
 else()
     set(CMAKE_BUILD_TYPE Debug)
+
+    # For memory leak detection
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
     message(STATUS "Running CMake build in DEBUG mode!")
 endif()
 

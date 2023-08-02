@@ -21,12 +21,14 @@
 #include "ImuTypes.h"
 #include<mutex>
 
+using namespace std;
+
 namespace ORB_SLAM3
 {
 
 long unsigned int KeyFrame::nNextId=0;
 
-KeyFrame::KeyFrame():
+KeyFrame::KeyFrame(): 
         mnFrameId(0),  mTimeStamp(0), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
         mfGridElementWidthInv(0), mfGridElementHeightInv(0),
         mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0), mnBALocalForMerge(0),
@@ -38,6 +40,7 @@ KeyFrame::KeyFrame():
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
         NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false)
 {
+    std::cout << "Create KeyFrame" << std::endl;
 
 }
 

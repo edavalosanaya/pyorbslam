@@ -474,8 +474,6 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
     return Tcw;
 }
 
-
-
 void System::ActivateLocalizationMode()
 {
     unique_lock<mutex> lock(mMutexMode);
@@ -995,7 +993,6 @@ void System::SaveTrajectoryEuRoC(const string &filename, Map* pMap)
     cout << endl << "End of saving trajectory to " << filename << " ..." << endl;
 }*/
 
-
 /*void System::SaveKeyFrameTrajectoryEuRoC_old(const string &filename)
 {
     cout << endl << "Saving keyframe trajectory to " << filename << " ..." << endl;
@@ -1256,7 +1253,6 @@ void System::SaveTrajectoryKITTI(const string &filename)
     f.close();
 }
 
-
 void System::SaveDebugData(const int &initIdx)
 {
     // 0. Save initialization trajectory
@@ -1311,7 +1307,6 @@ void System::SaveDebugData(const int &initIdx)
     f << mpLocalMapper->mInitTime << endl;
     f.close();
 }
-
 
 int System::GetTrackingState()
 {
@@ -1369,7 +1364,6 @@ bool System::isLost()
             return false;
     }
 }
-
 
 bool System::isFinished()
 {
