@@ -151,6 +151,7 @@ public:
     // Basically we store the reference keyframe for each frame and its relative transformation
     list<Sophus::SE3f> mlRelativeFramePoses;
     list<shared_ptr<KeyFrame>> mlpReferences;
+    std::mutex mMutexSavedPose;
     list<double> mlFrameTimes;
     list<bool> mlbLost;
 

@@ -37,7 +37,7 @@ def test_start_and_stop_app():
     time.sleep(2)
 
 
-def test_plot_line(example_trajectory):
+def test_plot_line():
     drawer = pyorbslam.TrajectoryDrawer()
 
     N = 100

@@ -40,7 +40,6 @@ KeyFrame::KeyFrame():
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
         NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false)
 {
-    std::cout << "Create KeyFrame" << std::endl;
 
 }
 
@@ -51,13 +50,13 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnLoopQuery(0), mnLoopWords(0), mnRelocQuery(0), mnRelocWords(0), mnBAGlobalForKF(0), mnPlaceRecognitionQuery(0), mnPlaceRecognitionWords(0), mPlaceRecognitionScore(0),
     fx(F.fx), fy(F.fy), cx(F.cx), cy(F.cy), invfx(F.invfx), invfy(F.invfy),
     mbf(F.mbf), mb(F.mb), mThDepth(F.mThDepth), N(F.N), mvKeys(F.mvKeys), mvKeysUn(F.mvKeysUn),
-    mvuRight(F.mvuRight), mvDepth(F.mvDepth), mDescriptors(F.mDescriptors.clone()),
+    mvuRight(F.mvuRight), mvDepth(F.mvDepth), mDescriptors(F.mDescriptors),
     mBowVec(F.mBowVec), mFeatVec(F.mFeatVec), mnScaleLevels(F.mnScaleLevels), mfScaleFactor(F.mfScaleFactor),
     mfLogScaleFactor(F.mfLogScaleFactor), mvScaleFactors(F.mvScaleFactors), mvLevelSigma2(F.mvLevelSigma2),
     mvInvLevelSigma2(F.mvInvLevelSigma2), mnMinX(F.mnMinX), mnMinY(F.mnMinY), mnMaxX(F.mnMaxX),
-    mnMaxY(F.mnMaxY), mK_(F.mK_), mPrevKF(NULL), mNextKF(NULL), mpImuPreintegrated(F.mpImuPreintegrated),
+    mnMaxY(F.mnMaxY), mK_(F.mK_), mPrevKF(shared_ptr<KeyFrame>()), mNextKF(shared_ptr<KeyFrame>()), mpImuPreintegrated(F.mpImuPreintegrated),
     mImuCalib(F.mImuCalib), mvpMapPoints(F.mvpMapPoints), mpKeyFrameDB(pKFDB),
-    mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mDistCoef(F.mDistCoef), mbNotErase(false), mnDataset(F.mnDataset),
+    mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(shared_ptr<KeyFrame>()), mDistCoef(F.mDistCoef), mbNotErase(false), mnDataset(F.mnDataset),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap), mbCurrentPlaceRecognition(false), mNameFile(F.mNameFile), mnMergeCorrectedForKF(0),
     mpCamera(F.mpCamera), mpCamera2(F.mpCamera2),
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
@@ -101,6 +100,7 @@ void KeyFrame::ComputeBoW()
 {
     if(mBowVec.empty() || mFeatVec.empty())
     {
+        unique_lock<mutex> lock(mMutexFeatures);
         vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
         // Feature vector associate features with nodes in the 4th level (from leaves up)
         // We assume the vocabulary tree has 6 levels, change the 4 otherwise
@@ -223,6 +223,7 @@ void KeyFrame::UpdateBestCovisibles()
         }
     }
 
+    mvpOrderedConnectedKeyFrames.clear();
     mvpOrderedConnectedKeyFrames = vector<shared_ptr<KeyFrame>>(lKFs.begin(),lKFs.end());
     mvOrderedWeights = vector<int>(lWs.begin(), lWs.end());
 }
@@ -299,6 +300,9 @@ int KeyFrame::GetNumberMPs()
 void KeyFrame::AddMapPoint(shared_ptr<MapPoint> pMP, const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    if(idx >= mvpMapPoints.size()) {
+        mvpMapPoints.resize(idx+1);
+    }
     mvpMapPoints[idx] = pMP;
 }
 
@@ -392,7 +396,7 @@ void KeyFrame::UpdateConnections(bool upParent)
 
     //For all map points in keyframe check in which other keyframes are they seen
     //Increase counter for those keyframes
-    for(vector<shared_ptr<MapPoint>>::iterator vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
+    for(auto vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
     {
         shared_ptr<MapPoint> pMP = *vit;
 
@@ -428,7 +432,7 @@ void KeyFrame::UpdateConnections(bool upParent)
     if(!upParent)
         cout << "UPDATE_CONN: current KF " << mnId << endl;
     shared_ptr<KeyFrame> pThis = shared_from_this();
-    for(map<shared_ptr<KeyFrame>,int>::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
+    for(map<shared_ptr<KeyFrame>,int>::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend;)
     {
         if(!upParent)
             cout << "  UPDATE_CONN: KF " << mit->first->mnId << " ; num matches: " << mit->second << endl;
@@ -441,6 +445,9 @@ void KeyFrame::UpdateConnections(bool upParent)
         {
             vPairs.push_back(make_pair(mit->second,mit->first));
             (mit->first)->AddConnection(pThis,mit->second);
+            mit++;
+        }else{
+            mit = KFcounter.erase(mit);
         }
     }
 
@@ -577,13 +584,13 @@ void KeyFrame::SetErase()
 
 void KeyFrame::SetBadFlag()
 {
-    {
-        unique_lock<mutex> lock(mMutexConnections);
-        if(mnId==mpMap->GetInitKFid())
+    {   if(mnId==mpMap->GetInitKFid())
         {
             return;
         }
-        else if(mbNotErase)
+        unique_lock<mutex> lock(mMutexConnections);
+
+        if(mbNotErase)
         {
             mbToBeErased = true;
             return;
@@ -595,19 +602,17 @@ void KeyFrame::SetBadFlag()
     {
         mit->first->EraseConnection(pThis);
     }
-
-    for(size_t i=0; i<mvpMapPoints.size(); i++)
-    {
-        if(mvpMapPoints[i])
-        {
+    for (size_t i = 0; i < mvpMapPoints.size(); i++) {
+        if (mvpMapPoints[i]) {
             mvpMapPoints[i]->EraseObservation(pThis);
+            mvpMapPoints[i].reset();
         }
     }
 
     {
         unique_lock<mutex> lock(mMutexConnections);
         unique_lock<mutex> lock1(mMutexFeatures);
-
+        mvpMapPoints.clear();
         mConnectedKeyFrameWeights.clear();
         mvpOrderedConnectedKeyFrames.clear();
 
@@ -679,9 +684,19 @@ void KeyFrame::SetBadFlag()
         mbBad = true;
     }
 
-
     mpMap->EraseKeyFrame(pThis);
     mpKeyFrameDB->erase(pThis);
+    mPrevKF.reset();
+    mNextKF.reset();
+    mpParent.reset();
+    mspChildrens.clear();
+    mspLoopEdges.clear();
+    mspMergeEdges.clear();
+    mvpLoopCandKFs.clear();
+    mvpMergeCandKFs.clear();
+
+    mGrid.clear();
+    mGridRight.clear();
 }
 
 bool KeyFrame::isBad()
@@ -707,9 +722,13 @@ void KeyFrame::EraseConnection(shared_ptr<KeyFrame> pKF)
 }
 
 
-vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const float &r, const bool bRight) const
+vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const float &r, const bool bRight)
 {
     vector<size_t> vIndices;
+    unique_lock<mutex> lock(mMutexFeatures);
+    if(mGrid.empty())
+        return vIndices;
+
     vIndices.reserve(N);
 
     float factorX = r;
@@ -798,9 +817,9 @@ float KeyFrame::ComputeSceneMedianDepth(const int q)
     Eigen::Matrix<float,1,3> Rcw2 = Rcw.row(2);
     float zcw = tcw(2);
     for(int i=0; i<N; i++) {
-        if(mvpMapPoints[i])
+        if(vpMapPoints[i])
         {
-            shared_ptr<MapPoint> pMP = mvpMapPoints[i];
+            shared_ptr<MapPoint> pMP = vpMapPoints[i];
             Eigen::Vector3f x3Dw = pMP->GetWorldPos();
             float z = Rcw2.dot(x3Dw) + zcw;
             vDepths.push_back(z);

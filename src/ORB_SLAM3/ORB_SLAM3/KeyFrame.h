@@ -258,7 +258,7 @@ public:
     shared_ptr<MapPoint> GetMapPoint(const size_t &idx);
 
     // KeyPoint functions
-    std::vector<size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r, const bool bRight = false) const;
+    std::vector<size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r, const bool bRight = false);
     bool UnprojectStereo(int i, Eigen::Vector3f &x3D);
 
     // Image

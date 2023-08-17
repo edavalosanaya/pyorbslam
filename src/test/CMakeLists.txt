@@ -25,6 +25,20 @@ target_link_libraries(test_map
     GTest::gtest_main
     ORB_SLAM3
 )
+add_executable(test_key_frame
+    test_key_frame.cpp
+)
+target_link_libraries(test_key_frame
+    GTest::gtest_main
+    ORB_SLAM3
+)
+add_executable(test_atlas
+    test_atlas.cpp
+)
+target_link_libraries(test_atlas
+    GTest::gtest_main
+    ORB_SLAM3
+)
 
 include(GoogleTest)
 gtest_discover_tests(test_simple test_mono test_map)

@@ -215,6 +215,8 @@ int MapPoint::Observations()
 
 void MapPoint::SetBadFlag()
 {
+    if(isBad())
+        return;
     map<shared_ptr<KeyFrame>, tuple<int,int>> obs;
     {
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -222,6 +224,8 @@ void MapPoint::SetBadFlag()
         mbBad=true;
         obs = mObservations;
         mObservations.clear();
+        mpRefKF.reset();
+        mpReplaced.reset();
     }
     for(map<shared_ptr<KeyFrame>, tuple<int,int>>::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
     {
@@ -235,15 +239,8 @@ void MapPoint::SetBadFlag()
         }
     }
 
-    // mpMap->EraseMapPoint(this);
     shared_ptr<MapPoint> pThis = shared_from_this();
     mpMap->EraseMapPoint(pThis);
-    {
-        unique_lock<mutex> lock1(mMutexFeatures);
-        unique_lock<mutex> lock2(mMutexPos);
-        mpRefKF.reset();
-        mpReplaced.reset();
-    }
 }
 
 shared_ptr<MapPoint> MapPoint::GetReplaced()
@@ -304,9 +301,8 @@ void MapPoint::Replace(shared_ptr<MapPoint> pMP)
     pMP->IncreaseVisible(nvisible);
     pMP->ComputeDistinctiveDescriptors();
 
-    // mpMap->EraseMapPoint(this);
     shared_ptr<MapPoint> pThis = shared_from_this();
-    mpMap->EraseMapPoint(pMP);
+    mpMap->EraseMapPoint(pThis);
     {
         unique_lock<mutex> lock1(mMutexFeatures);
         unique_lock<mutex> lock2(mMutexPos);
@@ -320,7 +316,6 @@ bool MapPoint::isBad()
     unique_lock<mutex> lock1(mMutexFeatures,std::defer_lock);
     unique_lock<mutex> lock2(mMutexPos,std::defer_lock);
     lock(lock1, lock2);
-
     return mbBad;
 }
 
@@ -370,10 +365,14 @@ void MapPoint::ComputeDistinctiveDescriptors()
             int leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
 
             if(leftIndex != -1){
-                vDescriptors.push_back(pKF->mDescriptors.row(leftIndex));
+                cv::Mat des = pKF->mDescriptors.row(leftIndex);
+                if(!des.empty())
+                    vDescriptors.push_back(des);
             }
             if(rightIndex != -1){
-                vDescriptors.push_back(pKF->mDescriptors.row(rightIndex));
+                cv::Mat des = pKF->mDescriptors.row(rightIndex);
+                if(!des.empty())
+                    vDescriptors.push_back(des);
             }
         }
     }
@@ -414,14 +413,14 @@ void MapPoint::ComputeDistinctiveDescriptors()
 
     {
         unique_lock<mutex> lock(mMutexFeatures);
-        mDescriptor = vDescriptors[BestIdx].clone();
+        mDescriptor = vDescriptors[BestIdx];
     }
 }
 
 cv::Mat MapPoint::GetDescriptor()
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    return mDescriptor.clone();
+    return mDescriptor;
 }
 
 tuple<int,int> MapPoint::GetIndexInKeyFrame(shared_ptr<KeyFrame> pKF)

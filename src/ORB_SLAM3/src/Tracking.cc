@@ -2273,7 +2273,7 @@ void Tracking::Track()
 
     if(mState==OK || mState==RECENTLY_LOST)
     {
-        // unique_lock<mutex> lock(mMutexSavedPose);
+        unique_lock<mutex> lock(mMutexSavedPose);
         // Store frame pose information to retrieve the complete camera trajectory afterwards.
         if(mCurrentFrame.isSet())
         {
@@ -3773,7 +3773,7 @@ void Tracking::Reset(bool bLocMap)
     mbReadyToInitializate = false;
     mbSetInit=false;
 
-    // unique_lock<mutex> lock(mMutexSavedPose);
+    unique_lock<mutex> lock(mMutexSavedPose);
     mlRelativeFramePoses.clear();
     mlpReferences.clear();
     mlFrameTimes.clear();
@@ -3938,7 +3938,7 @@ void Tracking::UpdateFrameIMU(const float s, const IMU::Bias &b, shared_ptr<KeyF
         unsigned int index = mnFirstFrameId;
         list<shared_ptr<KeyFrame>>::iterator lRit = mlpReferences.begin();
         list<bool>::iterator lbL = mlbLost.begin();
-        // unique_lock<mutex> lock(mMutexSavedPose);
+        unique_lock<mutex> lock(mMutexSavedPose);
         for (auto lit = mlRelativeFramePoses.begin(), lend = mlRelativeFramePoses.end();
              lit != lend; lit++, lRit++, lbL++) {
             if (*lbL)
