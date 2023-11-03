@@ -53,7 +53,7 @@ while True
         break
 
     # Process frame and update timestamp
-    state = tobii_slam.process(frame, timestamp)
+    state = slam.process(frame, timestamp)
     timestamp += fps
 
     # If all things work, then we get a camera pose (YAY!)
